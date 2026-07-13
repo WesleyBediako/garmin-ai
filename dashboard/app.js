@@ -376,7 +376,28 @@ function computeInsights(wellness, dates, activities, plan, todayStr) {
   return insights;
 }
 
-function computeCoachTip(wellness, dates, activities, plan, todayStr) {
+function addDays(dateStr, n) {
+  // UTC-based calendar math — avoids toISOString() rolling the date back
+  // a day for timezones ahead of UTC (e.g. Europe).
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  date.setUTCDate(date.getUTCDate() + n);
+  const yyyy = date.getUTCFullYear();
+  const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(date.getUTCDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function computeCoachTip(wellness, dates, activities, plan, todayStr, activityDates) {
+  // Once today's session is logged (e.g. after the 08:30 sync catches your
+  // run), the tip has nothing left to say about today — shift the focus to
+  // tomorrow's session instead. This is behavior-triggered, not time-based,
+  // so it still works if you run earlier/later than usual.
+  const todayHasActivity = activityDates && activityDates.has(todayStr);
+  const targetDate = todayHasActivity ? addDays(todayStr, 1) : todayStr;
+  const dayWord = targetDate === todayStr ? "heute" : "morgen";
+  const dayWordCap = targetDate === todayStr ? "Heute" : "Morgen";
+
   const readinessSeries = dates
     .map((d) => {
       const r = wellness[d].training_readiness;
@@ -390,51 +411,60 @@ function computeCoachTip(wellness, dates, activities, plan, todayStr) {
     else break;
   }
 
-  const todaySession = plan ? plan.sessions.find((s) => s.date === todayStr) : null;
+  const targetSession = plan ? plan.sessions.find((s) => s.date === targetDate) : null;
   const hardTypes = ["TRACK", "SCHWELLE", "HMPACE", "FARTLEK"];
-  const isHardDay = todaySession && hardTypes.includes(todaySession.type);
-  const isEasyDay = todaySession && ["EASY", "LONG", "RECOVERY", "RAD", "RAD+EASY"].includes(todaySession.type);
-  const isRestDay = todaySession && todaySession.type === "REST";
+  const isHardDay = targetSession && hardTypes.includes(targetSession.type);
+  const isEasyDay = targetSession && ["EASY", "LONG", "RECOVERY", "RAD", "RAD+EASY"].includes(targetSession.type);
+  const isRestDay = targetSession && targetSession.type === "REST";
 
-  const sessionName = todaySession ? `"${todaySession.title_and_target}"` : "deine heutige Einheit";
+  const sessionName = targetSession ? `"${targetSession.title_and_target}"` : `deine ${dayWord === "heute" ? "heutige" : "morgige"} Einheit`;
+  const readinessNote = todayHasActivity
+    ? ` (Readiness-Stand von heute Morgen — kann sich bis morgen früh noch ändern)`
+    : "";
 
   if (isRestDay) {
     return {
-      headline: "Heute ist Ruhetag laut Plan — auch nutzen.",
-      body: `Kein Training heute vorgesehen. Genau das ist der Moment, in dem sich die Anpassung an das bisherige Training festigt — nicht schummeln, auch wenn du dich fit fühlst.`,
+      forTomorrow: todayHasActivity,
+      headline: `${dayWordCap} ist Ruhetag laut Plan — auch nutzen.`,
+      body: `Kein Training ${dayWord} vorgesehen. Genau das ist der Moment, in dem sich die Anpassung an das bisherige Training festigt — nicht schummeln, auch wenn du dich fit fühlst.`,
     };
   }
 
   if (poorStreak >= 2 && isHardDay) {
     return {
-      headline: `Readiness seit ${poorStreak} Tagen schwach → heute runterschrauben`,
-      body: `Geplant wäre ${sessionName}, aber dein Körper zeigt seit ${poorStreak} Tagen Anzeichen unvollständiger Erholung. Empfehlung: heute stattdessen easy laufen oder Umfang/Tempo der Einheit deutlich reduzieren. Der Plan selbst sagt an mehreren Stellen "Gefühl > Uhr" — heute ist so ein Tag.`,
+      forTomorrow: todayHasActivity,
+      headline: `Readiness seit ${poorStreak} Tagen schwach → ${dayWord} runterschrauben`,
+      body: `Geplant wäre ${sessionName}${readinessNote}, aber dein Körper zeigt seit ${poorStreak} Tagen Anzeichen unvollständiger Erholung. Empfehlung: ${dayWord} stattdessen easy laufen oder Umfang/Tempo der Einheit deutlich reduzieren. Der Plan selbst sagt an mehreren Stellen "Gefühl > Uhr" — das ist so ein Tag.`,
     };
   }
 
   if (poorStreak >= 2 && isEasyDay) {
     return {
+      forTomorrow: todayHasActivity,
       headline: `Readiness niedrig, aber der Plan passt bereits`,
-      body: `${sessionName} ist heute ohnehin locker angesetzt — genau richtig bei ${poorStreak} Tagen schwacher Readiness. Bewusst langsam laufen, nicht ins Tempo verfallen.`,
+      body: `${sessionName} ist ${dayWord} ohnehin locker angesetzt${readinessNote} — genau richtig bei ${poorStreak} Tagen schwacher Readiness. Bewusst langsam laufen, nicht ins Tempo verfallen.`,
     };
   }
 
   if (latestReadiness != null && latestReadiness >= 75 && isHardDay) {
     return {
-      headline: "Grünes Licht — heute wie geplant",
-      body: `Readiness bei ${latestReadiness}, Erholung sieht gut aus. ${sessionName} kann wie im Plan angegangen werden.`,
+      forTomorrow: todayHasActivity,
+      headline: `Grünes Licht — ${dayWord} wie geplant`,
+      body: `Readiness bei ${latestReadiness}${readinessNote}, Erholung sieht gut aus. ${sessionName} kann wie im Plan angegangen werden.`,
     };
   }
 
-  if (todaySession) {
+  if (targetSession) {
     return {
-      headline: `Heute: ${todaySession.type_label}`,
-      body: `${sessionName} — ${todaySession.detail || ""}. Keine besonderen Auffälligkeiten in den Recovery-Werten, dem Plan folgen.`,
+      forTomorrow: todayHasActivity,
+      headline: `${dayWordCap}: ${targetSession.type_label}`,
+      body: `${sessionName} — ${targetSession.detail || ""}. Keine besonderen Auffälligkeiten in den Recovery-Werten, dem Plan folgen.`,
     };
   }
 
   return {
-    headline: "Kein Trainingsplan für heute gefunden",
+    forTomorrow: todayHasActivity,
+    headline: `Kein Trainingsplan für ${dayWord} gefunden`,
     body: "Prüfe, ob das richtige Plan-PDF eingelesen wurde.",
   };
 }
@@ -442,7 +472,7 @@ function computeCoachTip(wellness, dates, activities, plan, todayStr) {
 function renderCoachTip(tip) {
   return `<section>
     <div class="card" style="border-left:4px solid var(--accent)">
-      <h3>Coach-Tipp für heute</h3>
+      <h3>Coach-Tipp für ${tip.forTomorrow ? "morgen" : "heute"}</h3>
       <div class="value" style="font-size:1.15rem">${tip.headline}</div>
       <p style="color:var(--text-dim);font-size:0.9rem;margin:0">${tip.body}</p>
     </div>
@@ -794,7 +824,7 @@ async function main() {
   const currentWeekLabel = plan ? plan.sessions.find((s) => s.date === todayStr)?.week : null;
   const insights = computeInsights(wellness, dates, activities, plan, todayStr);
 
-  const coachTip = computeCoachTip(wellness, dates, activities, plan, todayStr);
+  const coachTip = computeCoachTip(wellness, dates, activities, plan, todayStr, activityDates);
   const adjustments = computeUpcomingAdjustments(wellness, dates, activities, plan, todayStr);
 
   app.innerHTML =
