@@ -515,6 +515,69 @@ function renderWeeklyVolumeChart(weeklyStats) {
   </section>`;
 }
 
+const PACE_NAMES = /@\s*(HMP|Schwelle|mod-Tempo|Tempo)\b/i;
+
+function extractPaceLabel(session) {
+  const combined = `${session.title_and_target || ""} ${session.detail || ""}`;
+  const range = parsePaceRangeSecPerKm(combined);
+  if (range) return `${fmtPace(range.fast).replace("/km", "")}–${fmtPace(range.slow)}`;
+  // Lenient fallback: a time-range without an explicit /km suffix nearby
+  // (some plan rows lost the unit during PDF extraction, but in this
+  // context an H:MM–H:MM range is always a per-km pace).
+  const lenient = combined.match(/(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})/);
+  if (lenient) {
+    const fast = parseInt(lenient[1], 10) * 60 + parseInt(lenient[2], 10);
+    const slow = parseInt(lenient[3], 10) * 60 + parseInt(lenient[4], 10);
+    return `${fmtPace(fast).replace("/km", "")}–${fmtPace(slow)}`;
+  }
+  const single = combined.match(/(\d{1,2}:\d{2})\s*\/?\s*km/);
+  if (single) return `${single[1]}/km`;
+  const named = combined.match(PACE_NAMES);
+  if (named) return named[1];
+  return session.type === "REST" ? "—" : "siehe Details";
+}
+
+function extractDistanceLabel(session) {
+  // Only trust simple, unambiguous cases — plain "16 km Easy" style.
+  const m = (session.detail || "").match(/^(\d+(?:[.,]\d+)?)\s*km\b/);
+  if (m) return `${m[1]} km`;
+  if (session.type === "REST") return "—";
+  return "siehe Details";
+}
+
+function renderDetailSegments(session) {
+  const parts = [];
+  if (session.title_and_target) parts.push(`<p style="margin:0 0 8px;font-size:0.88rem"><strong>Ziel:</strong> ${session.title_and_target}</p>`);
+  if (session.detail) {
+    const segments = session.detail.split("·").map((s) => s.trim()).filter(Boolean);
+    parts.push(
+      `<ul style="margin:0 0 8px;padding-left:18px;font-size:0.88rem;line-height:1.8">` +
+        segments
+          .map((seg) => {
+            const restMatch = seg.match(/r\s?(\d+)\s?(min|s)\b/i);
+            let html = seg;
+            if (restMatch) {
+              html = seg.replace(restMatch[0], "").trim() + ` <span class="badge na">Pause ${restMatch[1]}${restMatch[2]}</span>`;
+            }
+            return `<li>${html}</li>`;
+          })
+          .join("") +
+        `</ul>`
+    );
+  }
+  if (session.note) parts.push(`<p style="margin:0;font-size:0.85rem;color:var(--text-dim)"><strong>Coach-Notiz:</strong> ${session.note}</p>`);
+  return parts.join("") || '<p class="empty">Keine weiteren Details</p>';
+}
+
+function togglePlanRow(el) {
+  const detailRow = el.nextElementSibling;
+  const isOpen = detailRow.style.display === "table-row";
+  detailRow.style.display = isOpen ? "none" : "table-row";
+  const chevron = el.querySelector(".chevron");
+  if (chevron) chevron.textContent = isOpen ? "▸" : "▾";
+}
+window.togglePlanRow = togglePlanRow;
+
 function renderTrainingPlan(plan, activityDates, todayStr, adjustments) {
   if (!plan || !plan.sessions || plan.sessions.length === 0) {
     return `<section><div class="section-head"><h2>Trainingsplan</h2></div><div class="table-card"><p class="empty">Kein Trainingsplan geladen</p></div></section>`;
@@ -530,22 +593,27 @@ function renderTrainingPlan(plan, activityDates, todayStr, adjustments) {
     .map((s) => {
       const status = sessionStatus(s, activityDates, todayStr);
       const adj = adjustments[s.date];
-      const rowClass = s.date === todayStr ? ' class="is-today"' : "";
-      const einheitCell = adj
-        ? `<span style="text-decoration:line-through;color:var(--muted)">${s.title_and_target}</span><br><strong style="color:var(--warn)">${adj.newTitle}</strong>`
-        : s.title_and_target;
-      const detailCell = adj ? `${adj.newDetail} <span class="badge warn">Angepasst</span>` : s.detail || "";
-      const row = `<tr${rowClass}>
-        <td>${s.date} (${s.day_code})</td>
-        <td>${s.type_label}</td>
-        <td>${einheitCell}</td>
-        <td>${detailCell}</td>
+      const rowClass = s.date === todayStr ? "is-today" : "";
+      const typCell = adj
+        ? `<span style="text-decoration:line-through;color:var(--muted)">${s.type_label}</span><br><strong style="color:var(--warn)">Easy Run</strong> <span class="badge warn">Angepasst</span>`
+        : s.type_label;
+      const paceCell = adj ? "locker" : extractPaceLabel(s);
+      const distCell = adj ? "~gleich" : extractDistanceLabel(s);
+
+      const row = `<tr class="${rowClass}" style="cursor:pointer" onclick="togglePlanRow(this)">
+        <td><span class="chevron" style="display:inline-block;width:14px;color:var(--muted)">▸</span>${s.date} (${s.day_code})</td>
+        <td>${typCell}</td>
+        <td>${paceCell}</td>
+        <td>${distCell}</td>
         <td>${STATUS_BADGE[status]}</td>
       </tr>`;
-      const reasonRow = adj
-        ? `<tr${rowClass}><td></td><td colspan="4" style="color:var(--text-dim);font-size:0.82rem;padding-top:0">↳ ${adj.reason}</td></tr>`
-        : "";
-      return row + reasonRow;
+
+      const adjNote = adj ? `<p style="margin:0 0 8px;font-size:0.85rem;color:var(--warn)">↳ ${adj.reason}</p>` : "";
+      const detailRow = `<tr class="${rowClass}" style="display:none"><td colspan="5" style="background:var(--bg-soft)">
+          <div style="padding:14px 4px">${adjNote}${renderDetailSegments(s)}</div>
+        </td></tr>`;
+
+      return row + detailRow;
     })
     .join("");
 
@@ -555,10 +623,10 @@ function renderTrainingPlan(plan, activityDates, todayStr, adjustments) {
     : "";
 
   return `<section>
-    <div class="section-head"><h2>Trainingsplan — ${currentWeek}</h2><span class="hint">${weekSessions[0]?.week_volume || ""}</span></div>
+    <div class="section-head"><h2>Trainingsplan — ${currentWeek}</h2><span class="hint">${weekSessions[0]?.week_volume || ""} · Zeile klicken für Details</span></div>
     <div class="table-card">
       <table>
-        <thead><tr><th>Datum</th><th>Typ</th><th>Einheit</th><th>Details</th><th>Status</th></tr></thead>
+        <thead><tr><th>Datum</th><th>Typ</th><th>Pace</th><th>Distanz</th><th>Status</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
       ${offWeekNote}
@@ -580,6 +648,57 @@ function renderRecoveryCharts(rhrPoints, readinessPoints, stressPoints, batteryP
   </section>`;
 }
 
+function fmtSecToMin(sec) {
+  return sec != null ? `${Math.round(sec / 60)} min` : "n/a";
+}
+
+function detailStat(label, value) {
+  if (value == null || value === "") return "";
+  return `<div><div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.03em">${label}</div><div style="font-size:0.92rem;margin-top:2px">${value}</div></div>`;
+}
+
+function workoutDetailGrid(a) {
+  const items = [
+    detailStat("Kalorien", a.calories ? `${Math.round(a.calories)} kcal` : null),
+    detailStat("Höhenmeter", a.elevationGain != null ? `+${Math.round(a.elevationGain)}m / -${Math.round(a.elevationLoss || 0)}m` : null),
+    detailStat("Max HF", a.maxHR ? `${Math.round(a.maxHR)} bpm` : null),
+    detailStat("Ø Kadenz", a.averageRunningCadenceInStepsPerMinute ? `${Math.round(a.averageRunningCadenceInStepsPerMinute)} spm` : null),
+    detailStat("Aerober Trainingseffekt", a.aerobicTrainingEffect != null ? `${a.aerobicTrainingEffect.toFixed(1)} / 5.0` : null),
+    detailStat("Anaerober Trainingseffekt", a.anaerobicTrainingEffect != null ? `${a.anaerobicTrainingEffect.toFixed(1)} / 5.0` : null),
+    detailStat("Trainingsbelastung", a.activityTrainingLoad ? Math.round(a.activityTrainingLoad) : null),
+    detailStat("VO2max (geschätzt)", a.vO2MaxValue || null),
+    detailStat("Ø Leistung", a.avgPower ? `${Math.round(a.avgPower)} W` : null),
+    detailStat("Schrittlänge", a.avgStrideLength ? `${Math.round(a.avgStrideLength)} cm` : null),
+    detailStat("Bodenkontaktzeit", a.avgGroundContactTime ? `${Math.round(a.avgGroundContactTime)} ms` : null),
+    detailStat("Vert. Oszillation", a.avgVerticalOscillation ? `${a.avgVerticalOscillation.toFixed(1)} cm` : null),
+    detailStat("Ort", a.locationName || null),
+    detailStat("Schritte", a.steps ? a.steps.toLocaleString("de-DE") : null),
+  ].filter(Boolean);
+
+  const hrZones = [1, 2, 3, 4, 5]
+    .map((z) => ({ z, sec: a[`hrTimeInZone_${z}`] }))
+    .filter((x) => x.sec);
+  const hrZoneHtml = hrZones.length
+    ? `<div style="margin-top:14px">
+        <div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:6px">Zeit in HF-Zonen</div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap">
+          ${hrZones.map((x) => `<span style="font-size:0.85rem"><strong>Z${x.z}</strong> ${fmtSecToMin(x.sec)}</span>`).join("")}
+        </div>
+      </div>`
+    : "";
+
+  return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px 18px;padding:14px 4px">${items.join("")}</div>${hrZoneHtml}`;
+}
+
+function toggleWorkout(el) {
+  const detailRow = el.nextElementSibling;
+  const isOpen = detailRow.style.display === "table-row";
+  detailRow.style.display = isOpen ? "none" : "table-row";
+  const chevron = el.querySelector(".chevron");
+  if (chevron) chevron.textContent = isOpen ? "▸" : "▾";
+}
+window.toggleWorkout = toggleWorkout;
+
 function renderWorkouts(activities) {
   const list = Object.values(activities).sort((a, b) => (b.startTimeLocal || "").localeCompare(a.startTimeLocal || ""));
   if (list.length === 0) {
@@ -593,11 +712,15 @@ function renderWorkouts(activities) {
       const dist = a.distance ? (a.distance / 1000).toFixed(2) + " km" : "n/a";
       const dur = a.duration ? Math.round(a.duration / 60) + " min" : "n/a";
       const hr = a.averageHR ? Math.round(a.averageHR) + " bpm" : "n/a";
-      return `<tr><td>${date}</td><td>${name}</td><td>${type}</td><td>${dist}</td><td>${dur}</td><td>${hr}</td></tr>`;
+      return `<tr style="cursor:pointer" onclick="toggleWorkout(this)">
+          <td><span class="chevron" style="display:inline-block;width:14px;color:var(--muted)">▸</span>${date}</td>
+          <td>${name}</td><td>${type}</td><td>${dist}</td><td>${dur}</td><td>${hr}</td>
+        </tr>
+        <tr style="display:none"><td colspan="6" style="padding:0;background:var(--bg-soft)">${workoutDetailGrid(a)}</td></tr>`;
     })
     .join("");
   return `<section>
-    <div class="section-head"><h2>Letzte Workouts</h2></div>
+    <div class="section-head"><h2>Letzte Workouts</h2><span class="hint">Zeile klicken für Details</span></div>
     <div class="table-card">
       <table>
         <thead><tr><th>Datum</th><th>Name</th><th>Typ</th><th>Distanz</th><th>Dauer</th><th>Ø HF</th></tr></thead>
