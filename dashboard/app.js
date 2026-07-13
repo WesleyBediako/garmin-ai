@@ -166,6 +166,73 @@ function fmtPace(secPerKm) {
   return `${m}:${s.toString().padStart(2, "0")}/km`;
 }
 
+/* ---------- plan phase awareness ---------- */
+
+function getWeekPhase(block) {
+  if (!block) return "normal";
+  const b = block.toUpperCase();
+  if (/PEAK/.test(b)) return "peak";
+  if (/TAPER/.test(b)) return "taper";
+  if (/WETTKAMPFWOCHE|RACE WEEK|RENNTAG/.test(b)) return "raceweek";
+  if (/ERHOLUNGSWOCHE|RECOVERY/.test(b)) return "recoveryweek";
+  return "normal";
+}
+
+const HARD_TYPES = ["TRACK", "SCHWELLE", "HMPACE", "FARTLEK"];
+
+/* Small, conservative adjustments to the *upcoming* plan — only the next
+   hard/quality session gets touched, and only if the signal is strong enough
+   for the current training phase. Original plan is never deleted, only
+   annotated. */
+function computeUpcomingAdjustments(wellness, dates, activities, plan, todayStr) {
+  if (!plan) return {};
+
+  const readinessSeries = dates
+    .map((d) => {
+      const r = wellness[d].training_readiness;
+      return { date: d, value: Array.isArray(r) && r[0] ? r[0].score : null };
+    })
+    .filter((p) => p.value != null);
+  let poorStreak = 0;
+  for (let i = readinessSeries.length - 1; i >= 0; i--) {
+    if (readinessSeries[i].value <= 25) poorStreak++;
+    else break;
+  }
+  if (poorStreak < 2) return {}; // nothing to adjust, signal too weak
+
+  const upcoming = plan.sessions
+    .filter((s) => s.date >= todayStr)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, 6);
+
+  const nextHard = upcoming.find((s) => HARD_TYPES.includes(s.type));
+  if (!nextHard) return {};
+
+  const phase = getWeekPhase(nextHard.block);
+  // Peak/race weeks are intentionally hard/short by design — require a
+  // stronger, longer signal before touching them.
+  const requiredStreak = phase === "peak" || phase === "raceweek" ? 4 : phase === "taper" ? 3 : 2;
+  if (poorStreak < requiredStreak) return {};
+  if (phase === "recoveryweek") return {}; // already an easy week, nothing to soften further
+
+  const reason =
+    phase === "peak"
+      ? `Trotz Peak-Woche: Readiness ist seit ${poorStreak} Tagen durchgehend schwach — das übersteigt normale Peak-Week-Müdigkeit. Lieber diese eine Einheit entschärfen als das ganze Peak-Konzept zu gefährden.`
+      : phase === "taper"
+      ? `Auch im Taper sollte Readiness nicht ${poorStreak} Tage am Stück im Keller sein — Frische geht hier vor Schärfe.`
+      : `Readiness seit ${poorStreak} Tagen schwach — vor der nächsten intensiven Einheit lieber einen Gang runterschalten.`;
+
+  return {
+    [nextHard.date]: {
+      original: nextHard,
+      newTitle: `${nextHard.type_label} → Easy Run`,
+      newDetail: "Locker laufen, gleiche ungefähre Dauer, kein Tempo",
+      reason,
+      phase,
+    },
+  };
+}
+
 /* ---------- weekly aggregation ---------- */
 
 function computeWeeklyStats(plan, activities) {
@@ -448,7 +515,7 @@ function renderWeeklyVolumeChart(weeklyStats) {
   </section>`;
 }
 
-function renderTrainingPlan(plan, activityDates, todayStr) {
+function renderTrainingPlan(plan, activityDates, todayStr, adjustments) {
   if (!plan || !plan.sessions || plan.sessions.length === 0) {
     return `<section><div class="section-head"><h2>Trainingsplan</h2></div><div class="table-card"><p class="empty">Kein Trainingsplan geladen</p></div></section>`;
   }
@@ -462,16 +529,30 @@ function renderTrainingPlan(plan, activityDates, todayStr) {
   const rows = weekSessions
     .map((s) => {
       const status = sessionStatus(s, activityDates, todayStr);
+      const adj = adjustments[s.date];
       const rowClass = s.date === todayStr ? ' class="is-today"' : "";
-      return `<tr${rowClass}>
+      const einheitCell = adj
+        ? `<span style="text-decoration:line-through;color:var(--muted)">${s.title_and_target}</span><br><strong style="color:var(--warn)">${adj.newTitle}</strong>`
+        : s.title_and_target;
+      const detailCell = adj ? `${adj.newDetail} <span class="badge warn">Angepasst</span>` : s.detail || "";
+      const row = `<tr${rowClass}>
         <td>${s.date} (${s.day_code})</td>
         <td>${s.type_label}</td>
-        <td>${s.title_and_target}</td>
-        <td>${s.detail || ""}</td>
+        <td>${einheitCell}</td>
+        <td>${detailCell}</td>
         <td>${STATUS_BADGE[status]}</td>
       </tr>`;
+      const reasonRow = adj
+        ? `<tr${rowClass}><td></td><td colspan="4" style="color:var(--text-dim);font-size:0.82rem;padding-top:0">↳ ${adj.reason}</td></tr>`
+        : "";
+      return row + reasonRow;
     })
     .join("");
+
+  const offWeekAdj = Object.values(adjustments).find((a) => a.original.week !== currentWeek);
+  const offWeekNote = offWeekAdj
+    ? `<p style="color:var(--warn);font-size:0.85rem;margin:10px 0 0">Hinweis: für ${offWeekAdj.original.date} (${offWeekAdj.original.week}) ist ebenfalls eine Anpassung vorgeschlagen — ${offWeekAdj.reason}</p>`
+    : "";
 
   return `<section>
     <div class="section-head"><h2>Trainingsplan — ${currentWeek}</h2><span class="hint">${weekSessions[0]?.week_volume || ""}</span></div>
@@ -480,6 +561,7 @@ function renderTrainingPlan(plan, activityDates, todayStr) {
         <thead><tr><th>Datum</th><th>Typ</th><th>Einheit</th><th>Details</th><th>Status</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
+      ${offWeekNote}
     </div>
   </section>`;
 }
@@ -590,6 +672,7 @@ async function main() {
   const insights = computeInsights(wellness, dates, activities, plan, todayStr);
 
   const coachTip = computeCoachTip(wellness, dates, activities, plan, todayStr);
+  const adjustments = computeUpcomingAdjustments(wellness, dates, activities, plan, todayStr);
 
   app.innerHTML =
     renderHero(plan, todayStr, dates, Object.keys(activities).length) +
@@ -597,7 +680,7 @@ async function main() {
     renderCoachTip(coachTip) +
     renderWeekStats(weeklyStats, currentWeekLabel) +
     renderInsights(insights) +
-    (plan ? renderTrainingPlan(plan, activityDates, todayStr) : "") +
+    (plan ? renderTrainingPlan(plan, activityDates, todayStr, adjustments) : "") +
     renderWeeklyVolumeChart(weeklyStats) +
     renderRecoveryCharts(rhrPoints, readinessPoints, stressPoints, batteryPoints, stepsPoints) +
     renderWorkouts(activities) +
