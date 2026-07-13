@@ -1,0 +1,158 @@
+:root {
+  --bg: #0f1115;
+  --card: #171a21;
+  --text: #e8e9ec;
+  --muted: #8b8f9a;
+  --accent: #5eb3ff;
+  --accent2: #ff9d5e;
+  --accent3: #6ee7a0;
+  --border: #2a2e38;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f5f6f8;
+    --card: #ffffff;
+    --text: #1c1f26;
+    --muted: #6b7080;
+    --border: #e2e4ea;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding: 24px 32px 64px;
+}
+
+header {
+  margin-bottom: 28px;
+}
+
+h1 {
+  font-size: 1.6rem;
+  margin: 0 0 4px;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+#app {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+  max-width: 1200px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+
+.card h2 {
+  font-size: 0.95rem;
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.card .value {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin: 4px 0 12px;
+}
+
+.card .value .unit {
+  font-size: 1rem;
+  color: var(--muted);
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+.chart-card {
+  grid-column: span 2;
+}
+
+@media (max-width: 720px) {
+  .chart-card { grid-column: span 1; }
+}
+
+svg.chart {
+  width: 100%;
+  height: 140px;
+  overflow: visible;
+}
+
+svg.chart .line {
+  fill: none;
+  stroke-width: 2.5;
+}
+
+svg.chart .dot {
+  fill: var(--card);
+  stroke-width: 2.5;
+}
+
+svg.chart .axis-label {
+  font-size: 10px;
+  fill: var(--muted);
+}
+
+svg.chart .gridline {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.workouts {
+  grid-column: 1 / -1;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+th, td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge.poor { background: #4a2020; color: #ff8080; }
+.badge.low { background: #4a3820; color: #ffb84d; }
+.badge.moderate { background: #3a3a20; color: #e0d24d; }
+.badge.good { background: #204a2c; color: #6ee7a0; }
+.badge.na { background: var(--border); color: var(--muted); }
+
+.empty {
+  color: var(--muted);
+  font-style: italic;
+}
