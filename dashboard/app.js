@@ -225,7 +225,7 @@ function computeInsights(wellness, dates, activities, plan, todayStr) {
     insights.push({
       tone: "warn",
       title: `Training Readiness seit ${poorStreak} Tagen im schwachen Bereich`,
-      body: `Dein Readiness-Score war die letzten ${poorStreak} Tage durchgehend niedrig (≤25). Das ist ein Hinweis auf kumulative Ermüdung, die schneller aufgebaut wird als abgebaut. Erwäge, die nächste intensive Einheit gegen einen lockeren Lauf oder Ruhetag zu tauschen.`,
+      body: `Dein Readiness-Score war die letzten ${poorStreak} Tage durchgehend niedrig (≤25) — kumulative Ermüdung baut sich schneller auf als sie abgebaut wird. → Empfehlung: die nächste intensive Einheit gegen einen lockeren Lauf oder Ruhetag tauschen.`,
     });
   } else if (readinessSeries.length && readinessSeries[readinessSeries.length - 1].value >= 75) {
     insights.push({
@@ -257,7 +257,7 @@ function computeInsights(wellness, dates, activities, plan, todayStr) {
     insights.push({
       tone: "warn",
       title: `"${h.planned.type_label}" am ${h.date} lief schneller als vorgesehen`,
-      body: `Vorgesehen war ${fmtPace(h.range.fast)}–${fmtPace(h.range.slow)}, gelaufen wurde im Schnitt ${fmtPace(h.actualPace)}${h.hr ? ` bei Ø ${Math.round(h.hr)} bpm` : ""}. Easy-Einheiten dienen dem aeroben Grundlagenaufbau — regelmäßig zu schnelles Laufen an diesen Tagen verhindert genau diesen Effekt und erhöht die Ermüdung, ohne zusätzlichen Trainingsreiz zu bringen.`,
+      body: `Vorgesehen war ${fmtPace(h.range.fast)}–${fmtPace(h.range.slow)}, gelaufen wurde im Schnitt ${fmtPace(h.actualPace)}${h.hr ? ` bei Ø ${Math.round(h.hr)} bpm` : ""}. → Empfehlung: bei der nächsten Easy-Einheit bewusst bremsen, auch wenn es sich langsam anfühlt — das ist der Punkt dieser Läufe.`,
     });
   }
 
@@ -307,6 +307,79 @@ function computeInsights(wellness, dates, activities, plan, todayStr) {
   }
 
   return insights;
+}
+
+function computeCoachTip(wellness, dates, activities, plan, todayStr) {
+  const readinessSeries = dates
+    .map((d) => {
+      const r = wellness[d].training_readiness;
+      return { date: d, value: Array.isArray(r) && r[0] ? r[0].score : null };
+    })
+    .filter((p) => p.value != null);
+  const latestReadiness = readinessSeries.length ? readinessSeries[readinessSeries.length - 1].value : null;
+  let poorStreak = 0;
+  for (let i = readinessSeries.length - 1; i >= 0; i--) {
+    if (readinessSeries[i].value <= 25) poorStreak++;
+    else break;
+  }
+
+  const todaySession = plan ? plan.sessions.find((s) => s.date === todayStr) : null;
+  const hardTypes = ["TRACK", "SCHWELLE", "HMPACE", "FARTLEK"];
+  const isHardDay = todaySession && hardTypes.includes(todaySession.type);
+  const isEasyDay = todaySession && ["EASY", "LONG", "RECOVERY", "RAD", "RAD+EASY"].includes(todaySession.type);
+  const isRestDay = todaySession && todaySession.type === "REST";
+
+  const sessionName = todaySession ? `"${todaySession.title_and_target}"` : "deine heutige Einheit";
+
+  if (isRestDay) {
+    return {
+      headline: "Heute ist Ruhetag laut Plan — auch nutzen.",
+      body: `Kein Training heute vorgesehen. Genau das ist der Moment, in dem sich die Anpassung an das bisherige Training festigt — nicht schummeln, auch wenn du dich fit fühlst.`,
+    };
+  }
+
+  if (poorStreak >= 2 && isHardDay) {
+    return {
+      headline: `Readiness seit ${poorStreak} Tagen schwach → heute runterschrauben`,
+      body: `Geplant wäre ${sessionName}, aber dein Körper zeigt seit ${poorStreak} Tagen Anzeichen unvollständiger Erholung. Empfehlung: heute stattdessen easy laufen oder Umfang/Tempo der Einheit deutlich reduzieren. Der Plan selbst sagt an mehreren Stellen "Gefühl > Uhr" — heute ist so ein Tag.`,
+    };
+  }
+
+  if (poorStreak >= 2 && isEasyDay) {
+    return {
+      headline: `Readiness niedrig, aber der Plan passt bereits`,
+      body: `${sessionName} ist heute ohnehin locker angesetzt — genau richtig bei ${poorStreak} Tagen schwacher Readiness. Bewusst langsam laufen, nicht ins Tempo verfallen.`,
+    };
+  }
+
+  if (latestReadiness != null && latestReadiness >= 75 && isHardDay) {
+    return {
+      headline: "Grünes Licht — heute wie geplant",
+      body: `Readiness bei ${latestReadiness}, Erholung sieht gut aus. ${sessionName} kann wie im Plan angegangen werden.`,
+    };
+  }
+
+  if (todaySession) {
+    return {
+      headline: `Heute: ${todaySession.type_label}`,
+      body: `${sessionName} — ${todaySession.detail || ""}. Keine besonderen Auffälligkeiten in den Recovery-Werten, dem Plan folgen.`,
+    };
+  }
+
+  return {
+    headline: "Kein Trainingsplan für heute gefunden",
+    body: "Prüfe, ob das richtige Plan-PDF eingelesen wurde.",
+  };
+}
+
+function renderCoachTip(tip) {
+  return `<section>
+    <div class="card" style="border-left:4px solid var(--accent)">
+      <h3>Coach-Tipp für heute</h3>
+      <div class="value" style="font-size:1.15rem">${tip.headline}</div>
+      <p style="color:var(--text-dim);font-size:0.9rem;margin:0">${tip.body}</p>
+    </div>
+  </section>`;
 }
 
 function renderInsights(insights) {
@@ -452,22 +525,8 @@ function renderWorkouts(activities) {
   </section>`;
 }
 
-function renderGlossary() {
-  const terms = [
-    { t: "Training Readiness", d: "Garmins Tagesscore (0–100), der Schlaf, HRV, Erholung vom letzten Training und Schlafdefizit kombiniert. Hoch = Körper ist bereit für Belastung, niedrig = Erholung geht vor." },
-    { t: "Body Battery", d: "Ein 0–100-Energiespeicher, der über den Tag durch Aktivität sinkt und durch Ruhe/Schlaf wieder auflädt. Zeigt an, wie viel \"Reserve\" du gerade hast." },
-    { t: "HRV (Herzfrequenzvariabilität)", d: "Schwankung der Zeit zwischen Herzschlägen. Höhere Werte deuten meist auf ein gut erholtes, wenig gestresstes Nervensystem hin; ein Abfall gegenüber deinem Normalwert ist oft ein früher Hinweis auf Übermüdung oder beginnende Krankheit." },
-    { t: "Ruhepuls (RHR)", d: "Herzfrequenz im Ruhezustand, meist morgens gemessen. Ein Anstieg von mehreren Schlägen über deinen Normalwert kann auf unvollständige Erholung, Stress oder eine beginnende Erkältung hindeuten." },
-    { t: "Stress Score", d: "Wird aus der Herzfrequenzvariabilität über den Tag abgeleitet (0–100). Nicht nur mentaler Stress — auch Training selbst erzeugt einen hohen Stresswert, das ist normal." },
-    { t: "Easy Pace / Grundlagentempo", d: "Bewusst langsames Lauftempo, bei dem sich das Herz-Kreislauf-System (Mitochondrien, Kapillarisierung) aerob anpasst, ohne zusätzliche Ermüdung. Regelmäßig zu schnell gelaufene \"Easy Runs\" sind eine der häufigsten Ursachen für ausbleibenden Formaufbau trotz hartem Training." },
-    { t: "HMP (Halbmarathon-Pace)", d: "Das Zieltempo für den Halbmarathon selbst — wird in der Vorbereitung gezielt in kontrollierten Blöcken trainiert, um Tempogefühl und Ökonomie bei Renntempo aufzubauen." },
-  ];
-  const cards = terms.map((x) => `<div class="term"><h4>${x.t}</h4><p>${x.d}</p></div>`).join("");
-  return `<section>
-    <div class="section-head"><h2>Deine Werte verstehen</h2></div>
-    <div class="glossary">${cards}</div>
-    <p class="disclaimer">Die Hinweise oben werden automatisch aus deinen Garmin-Zahlen und deinem Trainingsplan berechnet (einfache Regeln, keine KI-Ferndiagnose). Bei anhaltenden Beschwerden, ungewöhnlichen Werten oder Unsicherheit zur Trainingssteuerung sprich mit deinem Trainer oder Arzt.</p>
-  </section>`;
+function renderDisclaimer() {
+  return `<p class="disclaimer">Coach-Tipp und Hinweise werden automatisch aus deinen Garmin-Zahlen und deinem Trainingsplan berechnet (einfache Regeln, keine KI-Ferndiagnose). Bei anhaltenden Beschwerden oder Unsicherheit zur Trainingssteuerung sprich mit deinem Trainer oder Arzt.</p>`;
 }
 
 /* ---------- main ---------- */
@@ -530,16 +589,19 @@ async function main() {
   const currentWeekLabel = plan ? plan.sessions.find((s) => s.date === todayStr)?.week : null;
   const insights = computeInsights(wellness, dates, activities, plan, todayStr);
 
+  const coachTip = computeCoachTip(wellness, dates, activities, plan, todayStr);
+
   app.innerHTML =
     renderHero(plan, todayStr, dates, Object.keys(activities).length) +
     `<div class="wrap">` +
+    renderCoachTip(coachTip) +
     renderWeekStats(weeklyStats, currentWeekLabel) +
     renderInsights(insights) +
     (plan ? renderTrainingPlan(plan, activityDates, todayStr) : "") +
     renderWeeklyVolumeChart(weeklyStats) +
     renderRecoveryCharts(rhrPoints, readinessPoints, stressPoints, batteryPoints, stepsPoints) +
     renderWorkouts(activities) +
-    renderGlossary() +
+    renderDisclaimer() +
     `</div>`;
 }
 
