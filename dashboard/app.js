@@ -4,27 +4,49 @@ const COLORS = {
   stress: "#ff9d5e",
   battery: "#c792ea",
   steps: "#5eb3ff",
+  volume: "#5eb3ff",
+  volumeTarget: "#3a4252",
+};
+
+const TYPE_LABELS_DE = {
+  EASY: "Easy Run",
+  TRACK: "Bahn / Intervalle",
+  FARTLEK: "Fartlek",
+  SCHWELLE: "Schwelle",
+  LONG: "Long Run",
+  RACE: "Rennen",
+  RECOVERY: "Erholung",
+  REST: "Ruhetag",
+  RAD: "Rad",
+  "RAD+EASY": "Rad + Easy Run",
+  HMPACE: "HM-Pace",
 };
 
 function readinessBadge(score) {
   if (score == null) return '<span class="badge na">n/a</span>';
-  if (score <= 25) return `<span class="badge poor">${score} Poor</span>`;
-  if (score <= 50) return `<span class="badge low">${score} Low</span>`;
-  if (score <= 75) return `<span class="badge moderate">${score} Moderate</span>`;
-  return `<span class="badge good">${score} Good</span>`;
+  if (score <= 25) return `<span class="badge poor">${score} Schwach</span>`;
+  if (score <= 50) return `<span class="badge low">${score} Niedrig</span>`;
+  if (score <= 75) return `<span class="badge moderate">${score} Mittel</span>`;
+  return `<span class="badge good">${score} Gut</span>`;
 }
 
 function fmtDate(d) {
-  const [y, m, day] = d.split("-");
-  return `${m}/${day}`;
+  const [, m, day] = d.split("-");
+  return `${day}.${m}.`;
 }
 
+function fmtHM(hoursFloat) {
+  const h = Math.floor(hoursFloat);
+  const m = Math.round((hoursFloat - h) * 60);
+  return `${h}h ${m.toString().padStart(2, "0")}m`;
+}
+
+/* ---------- charts ---------- */
+
 function lineChartSVG(points, color, opts = {}) {
-  const width = 600, height = 130, padL = 30, padR = 10, padT = 10, padB = 20;
+  const width = 600, height = 120, padL = 30, padR = 10, padT = 10, padB = 20;
   const values = points.map((p) => p.value).filter((v) => v != null);
-  if (values.length === 0) {
-    return `<p class="empty">No data for this period</p>`;
-  }
+  if (values.length === 0) return `<p class="empty">Keine Daten für diesen Zeitraum</p>`;
   const min = opts.minZero ? 0 : Math.min(...values);
   const max = Math.max(...values);
   const range = max - min || 1;
@@ -60,13 +82,52 @@ function lineChartSVG(points, color, opts = {}) {
   </svg>`;
 }
 
-function card(title, valueHtml, chartHtml, extraClass = "") {
-  return `<div class="card ${extraClass}">
-    <h2>${title}</h2>
-    <div class="value">${valueHtml}</div>
-    ${chartHtml}
+function weeklyVolumeChartSVG(weeks) {
+  if (weeks.length === 0) return `<p class="empty">Noch keine Wochendaten</p>`;
+  const width = 700, height = 170, padL = 36, padR = 10, padT = 10, padB = 34;
+  const innerW = width - padL - padR;
+  const innerH = height - padT - padB;
+  const maxVal = Math.max(1, ...weeks.map((w) => Math.max(w.actual, w.planned || 0))) * 1.15;
+  const groupW = innerW / weeks.length;
+  const barW = Math.min(26, groupW * 0.32);
+
+  const bars = weeks
+    .map((w, i) => {
+      const cx = padL + groupW * i + groupW / 2;
+      const actualH = (w.actual / maxVal) * innerH;
+      const plannedH = w.planned ? (w.planned / maxVal) * innerH : 0;
+      const ay = padT + innerH - actualH;
+      const py = padT + innerH - plannedH;
+      const aBar = `<rect class="bar" x="${cx - barW - 2}" y="${ay}" width="${barW}" height="${actualH}" fill="${COLORS.volume}"><title>${w.label}: ${w.actual.toFixed(1)} km ist</title></rect>`;
+      const pBar = w.planned
+        ? `<rect class="bar" x="${cx + 2}" y="${py}" width="${barW}" height="${plannedH}" fill="${COLORS.volumeTarget}"><title>${w.label}: ~${w.planned} km geplant</title></rect>`
+        : "";
+      const label = `<text class="bar-label" x="${cx}" y="${height - 4}">${w.label}</text>`;
+      return aBar + pBar + label;
+    })
+    .join("");
+
+  const gridline = `<line class="gridline" x1="${padL}" y1="${padT + innerH}" x2="${width - padR}" y2="${padT + innerH}" />`;
+
+  return `<svg class="chart" viewBox="0 0 ${width} ${height}">
+    ${gridline}
+    ${bars}
+  </svg>
+  <div style="display:flex;gap:16px;font-size:0.75rem;color:var(--muted);margin-top:6px">
+    <span><span style="display:inline-block;width:9px;height:9px;background:${COLORS.volume};border-radius:2px;margin-right:5px"></span>Ist</span>
+    <span><span style="display:inline-block;width:9px;height:9px;background:${COLORS.volumeTarget};border-radius:2px;margin-right:5px"></span>Plan</span>
   </div>`;
 }
+
+function statCard(title, valueHtml, chartHtml) {
+  return `<div class="card">
+    <h3>${title}</h3>
+    <div class="value">${valueHtml}</div>
+    ${chartHtml || ""}
+  </div>`;
+}
+
+/* ---------- plan / status helpers ---------- */
 
 function daysUntil(dateStr, todayStr) {
   const d = new Date(dateStr + "T00:00:00");
@@ -83,29 +144,241 @@ function sessionStatus(session, activityDates, todayStr) {
 }
 
 const STATUS_BADGE = {
-  done: '<span class="badge good">Done</span>',
-  missed: '<span class="badge poor">Missed</span>',
-  upcoming: '<span class="badge na">Upcoming</span>',
-  today: '<span class="badge moderate">Today</span>',
-  rest: '<span class="badge na">Rest</span>',
+  done: '<span class="badge good">Erledigt</span>',
+  missed: '<span class="badge poor">Verpasst</span>',
+  upcoming: '<span class="badge na">Kommt</span>',
+  today: '<span class="badge moderate">Heute</span>',
+  rest: '<span class="badge na">Ruhetag</span>',
 };
 
-function renderCountdown(plan, todayStr) {
-  const race = plan.sessions.find((s) => s.type === "RACE" && /COPENHAGEN|KOPENHAGEN/i.test(s.title_and_target));
-  if (!race) return "";
-  const n = daysUntil(race.date, todayStr);
-  const label = n > 0 ? `${n} days to go` : n === 0 ? "Race day!" : `${Math.abs(n)} days ago`;
-  return `<div class="card">
-    <h2>Copenhagen Half Marathon</h2>
-    <div class="value">${label}<span class="unit">${race.date} · goal ${race.detail || ""}</span></div>
+function parsePaceRangeSecPerKm(text) {
+  if (!text) return null;
+  const m = text.match(/(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})\s*\/?\s*km/);
+  if (!m) return null;
+  const fast = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+  const slow = parseInt(m[3], 10) * 60 + parseInt(m[4], 10);
+  return { fast, slow };
+}
+
+function fmtPace(secPerKm) {
+  const m = Math.floor(secPerKm / 60);
+  const s = Math.round(secPerKm % 60);
+  return `${m}:${s.toString().padStart(2, "0")}/km`;
+}
+
+/* ---------- weekly aggregation ---------- */
+
+function computeWeeklyStats(plan, activities) {
+  const dateToWeek = {};
+  const weekPlanned = {};
+  if (plan) {
+    plan.sessions.forEach((s) => {
+      dateToWeek[s.date] = s.week;
+      if (!(s.week in weekPlanned)) {
+        const m = (s.week_volume || "").match(/(\d+)/);
+        weekPlanned[s.week] = m ? parseInt(m[1], 10) : null;
+      }
+    });
+  }
+  const weeks = {};
+  Object.values(activities).forEach((a) => {
+    const date = (a.startTimeLocal || "").split(" ")[0];
+    const week = dateToWeek[date] || "?";
+    if (!weeks[week]) weeks[week] = { km: 0, hours: 0, count: 0 };
+    weeks[week].km += (a.distance || 0) / 1000;
+    weeks[week].hours += (a.duration || 0) / 3600;
+    weeks[week].count += 1;
+  });
+  const weekOrder = plan ? [...new Set(plan.sessions.map((s) => s.week))] : Object.keys(weeks).sort();
+  const series = weekOrder
+    .filter((w) => weeks[w])
+    .map((w) => ({
+      label: w,
+      actual: weeks[w].km,
+      hours: weeks[w].hours,
+      count: weeks[w].count,
+      planned: weekPlanned[w] || null,
+    }));
+  return series;
+}
+
+/* ---------- insights (rule-based, computed from your actual numbers) ---------- */
+
+function computeInsights(wellness, dates, activities, plan, todayStr) {
+  const insights = [];
+
+  // 1) Training Readiness Trend
+  const readinessSeries = dates
+    .map((d) => {
+      const r = wellness[d].training_readiness;
+      const v = Array.isArray(r) && r[0] ? r[0].score : null;
+      return { date: d, value: v };
+    })
+    .filter((p) => p.value != null);
+
+  let poorStreak = 0;
+  for (let i = readinessSeries.length - 1; i >= 0; i--) {
+    if (readinessSeries[i].value <= 25) poorStreak++;
+    else break;
+  }
+  if (poorStreak >= 2) {
+    insights.push({
+      tone: "warn",
+      title: `Training Readiness seit ${poorStreak} Tagen im schwachen Bereich`,
+      body: `Dein Readiness-Score war die letzten ${poorStreak} Tage durchgehend niedrig (≤25). Das ist ein Hinweis auf kumulative Ermüdung, die schneller aufgebaut wird als abgebaut. Erwäge, die nächste intensive Einheit gegen einen lockeren Lauf oder Ruhetag zu tauschen.`,
+    });
+  } else if (readinessSeries.length && readinessSeries[readinessSeries.length - 1].value >= 75) {
+    insights.push({
+      tone: "good",
+      title: "Training Readiness ist gut",
+      body: `Aktueller Score: ${readinessSeries[readinessSeries.length - 1].value}. Grünes Licht für die geplante Einheit.`,
+    });
+  }
+
+  // 2) Effort drift: Easy/Long/Recovery sessions run notably faster than prescribed pace
+  const plannedByDate = {};
+  if (plan) plan.sessions.forEach((s) => (plannedByDate[s.date] = s));
+
+  const driftHits = [];
+  Object.values(activities).forEach((a) => {
+    const date = (a.startTimeLocal || "").split(" ")[0];
+    const planned = plannedByDate[date];
+    if (!planned || !["EASY", "LONG", "RECOVERY"].includes(planned.type)) return;
+    if (!a.distance || !a.duration) return;
+    const range = parsePaceRangeSecPerKm(planned.title_and_target) || parsePaceRangeSecPerKm(planned.detail);
+    if (!range) return;
+    const actualPace = a.duration / (a.distance / 1000);
+    if (actualPace < range.fast - 8) {
+      driftHits.push({ date, planned, actualPace, range, hr: a.averageHR });
+    }
+  });
+  if (driftHits.length > 0) {
+    const h = driftHits[driftHits.length - 1];
+    insights.push({
+      tone: "warn",
+      title: `"${h.planned.type_label}" am ${h.date} lief schneller als vorgesehen`,
+      body: `Vorgesehen war ${fmtPace(h.range.fast)}–${fmtPace(h.range.slow)}, gelaufen wurde im Schnitt ${fmtPace(h.actualPace)}${h.hr ? ` bei Ø ${Math.round(h.hr)} bpm` : ""}. Easy-Einheiten dienen dem aeroben Grundlagenaufbau — regelmäßig zu schnelles Laufen an diesen Tagen verhindert genau diesen Effekt und erhöht die Ermüdung, ohne zusätzlichen Trainingsreiz zu bringen.`,
+    });
+  }
+
+  // 3) Weekly volume vs plan (current week)
+  const weeklyStats = computeWeeklyStats(plan, activities);
+  const currentWeekLabel = plan
+    ? plan.sessions.find((s) => s.date === todayStr)?.week
+    : null;
+  const currentWeek = weeklyStats.find((w) => w.label === currentWeekLabel);
+  if (currentWeek && currentWeek.planned) {
+    const pct = Math.round((currentWeek.actual / currentWeek.planned) * 100);
+    if (pct < 60 && daysUntil(todayStr, todayStr) === 0) {
+      insights.push({
+        tone: "info",
+        title: `Wochenvolumen ${currentWeekLabel}: ${currentWeek.actual.toFixed(1)} von ~${currentWeek.planned} km`,
+        body: `Das ist normal, wenn die Woche noch läuft — nur zur Einordnung, wo du gerade stehst (${pct}% des geplanten Volumens bisher).`,
+      });
+    }
+  }
+
+  // 4) Missing sleep/HRV data
+  const missingSleep = dates.filter((d) => !wellness[d].sleep || !wellness[d].sleep.dailySleepDTO || wellness[d].sleep.dailySleepDTO.sleepTimeSeconds == null);
+  if (missingSleep.length === dates.length && dates.length >= 2) {
+    insights.push({
+      tone: "info",
+      title: "Keine Schlafdaten in diesem Zeitraum",
+      body: `Für die letzten ${dates.length} Tage liegen keine Schlafwerte vor. Falls du die Uhr nachts normalerweise trägst, lohnt sich ein Blick in die Garmin Connect App, ob die Nächte dort erfasst wurden — sonst fehlt ein wichtiger Recovery-Baustein.`,
+    });
+  }
+
+  // 5) Stress trend
+  const stressSeries = dates.map((d) => wellness[d].stress?.avgStressLevel).filter((v) => v != null);
+  if (stressSeries.length >= 2 && stressSeries[stressSeries.length - 1] > 40 && stressSeries[stressSeries.length - 1] > stressSeries[0]) {
+    insights.push({
+      tone: "warn",
+      title: "Stresslevel steigt an",
+      body: `Durchschnittlicher Stresswert zuletzt bei ${stressSeries[stressSeries.length - 1]} (Anstieg gegenüber ${stressSeries[0]} zu Beginn des Zeitraums). Kombiniert mit den Trainingswerten oben lohnt es sich, auf ausreichend Schlaf und Erholungstage zu achten.`,
+    });
+  }
+
+  if (insights.length === 0) {
+    insights.push({
+      tone: "info",
+      title: "Alles im grünen Bereich",
+      body: "Keine auffälligen Muster in den aktuellen Daten. Weiter so.",
+    });
+  }
+
+  return insights;
+}
+
+function renderInsights(insights) {
+  const cards = insights
+    .map(
+      (i) => `<div class="insight tone-${i.tone}">
+      <p class="insight-title">${i.title}</p>
+      <p class="insight-body">${i.body}</p>
+    </div>`
+    )
+    .join("");
+  return `<section>
+    <div class="section-head"><h2>Was deine Daten zeigen</h2><span class="hint">automatisch berechnet, keine Ferndiagnose</span></div>
+    ${cards}
+  </section>`;
+}
+
+/* ---------- render sections ---------- */
+
+function renderHero(plan, todayStr, dates, activityCount) {
+  const race = plan
+    ? plan.sessions.find((s) => s.type === "RACE" && /COPENHAGEN|KOPENHAGEN/i.test(s.title_and_target))
+    : null;
+  const countdownHtml = race
+    ? (() => {
+        const n = daysUntil(race.date, todayStr);
+        const label = n > 0 ? `${n}` : n === 0 ? "🏁" : `+${Math.abs(n)}`;
+        const sub = n > 0 ? "Tage bis Kopenhagen" : n === 0 ? "Renntag!" : "Tage seit dem Rennen";
+        return `<div class="countdown">
+          <div class="num">${label}</div>
+          <div class="label">${sub}</div>
+          <div class="goal">${race.date} · Ziel ${race.detail || ""}</div>
+        </div>`;
+      })()
+    : "";
+  const rangeLabel = dates.length ? `${dates[0]} bis ${dates[dates.length - 1]} · ${activityCount} Workout(s) synced` : "Noch keine Daten";
+  return `<div class="hero">
+    <div class="hero-inner">
+      <div>
+        <h1>Dein Training</h1>
+        <p class="subtitle">${rangeLabel}</p>
+      </div>
+      ${countdownHtml}
+    </div>
   </div>`;
+}
+
+function renderWeekStats(weeklyStats, currentWeekLabel) {
+  const cur = weeklyStats.find((w) => w.label === currentWeekLabel) || { actual: 0, hours: 0, count: 0, planned: null };
+  const pct = cur.planned ? Math.round((cur.actual / cur.planned) * 100) : null;
+  return `<section>
+    <div class="section-head"><h2>Diese Woche (${currentWeekLabel || "—"})</h2></div>
+    <div class="grid">
+      ${statCard("Volumen", `${cur.actual.toFixed(1)}<span class="unit inline"> / ${cur.planned ? "~" + cur.planned : "?"} km</span>`)}
+      ${statCard("Stunden", fmtHM(cur.hours))}
+      ${statCard("Einheiten absolviert", `${cur.count}`)}
+      ${statCard("Wochen-Fortschritt", pct != null ? `${pct}%` : "n/a")}
+    </div>
+  </section>`;
+}
+
+function renderWeeklyVolumeChart(weeklyStats) {
+  return `<section>
+    <div class="section-head"><h2>Wochenvolumen im Verlauf</h2><span class="hint">Ist vs. Plan</span></div>
+    <div class="table-card">${weeklyVolumeChartSVG(weeklyStats)}</div>
+  </section>`;
 }
 
 function renderTrainingPlan(plan, activityDates, todayStr) {
   if (!plan || !plan.sessions || plan.sessions.length === 0) {
-    return `<div class="card workouts"><h2>Training Plan</h2><p class="empty">No training plan loaded</p></div>`;
+    return `<section><div class="section-head"><h2>Trainingsplan</h2></div><div class="table-card"><p class="empty">Kein Trainingsplan geladen</p></div></section>`;
   }
-  // Current week = the plan week containing today, or the nearest upcoming week
   let currentWeek = plan.sessions.find((s) => s.date === todayStr)?.week;
   if (!currentWeek) {
     const future = plan.sessions.filter((s) => s.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date));
@@ -116,8 +389,8 @@ function renderTrainingPlan(plan, activityDates, todayStr) {
   const rows = weekSessions
     .map((s) => {
       const status = sessionStatus(s, activityDates, todayStr);
-      const isToday = s.date === todayStr ? ' style="outline: 1px solid var(--accent)"' : "";
-      return `<tr${isToday}>
+      const rowClass = s.date === todayStr ? ' class="is-today"' : "";
+      return `<tr${rowClass}>
         <td>${s.date} (${s.day_code})</td>
         <td>${s.type_label}</td>
         <td>${s.title_and_target}</td>
@@ -127,26 +400,40 @@ function renderTrainingPlan(plan, activityDates, todayStr) {
     })
     .join("");
 
-  return `<div class="card workouts">
-    <h2>Training Plan — ${currentWeek} (${weekSessions[0]?.week_volume || ""})</h2>
-    <table>
-      <thead><tr><th>Date</th><th>Type</th><th>Session</th><th>Detail</th><th>Status</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-  </div>`;
+  return `<section>
+    <div class="section-head"><h2>Trainingsplan — ${currentWeek}</h2><span class="hint">${weekSessions[0]?.week_volume || ""}</span></div>
+    <div class="table-card">
+      <table>
+        <thead><tr><th>Datum</th><th>Typ</th><th>Einheit</th><th>Details</th><th>Status</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </section>`;
+}
+
+function renderRecoveryCharts(rhrPoints, readinessPoints, stressPoints, batteryPoints, stepsPoints) {
+  const latest = (pts) => pts[pts.length - 1]?.value;
+  return `<section>
+    <div class="section-head"><h2>Recovery & Belastung</h2></div>
+    <div class="grid charts">
+      ${statCard("Ruhepuls", latest(rhrPoints) != null ? `${latest(rhrPoints)}<span class="unit inline"> bpm</span>` : '<span class="empty">n/a</span>', lineChartSVG(rhrPoints, COLORS.rhr))}
+      ${statCard("Training Readiness", readinessBadge(latest(readinessPoints)), lineChartSVG(readinessPoints, COLORS.readiness, { minZero: true }))}
+      ${statCard("Ø Stress", latest(stressPoints) != null ? `${latest(stressPoints)}<span class="unit inline"> / 100</span>` : '<span class="empty">n/a</span>', lineChartSVG(stressPoints, COLORS.stress, { minZero: true }))}
+      ${statCard("Body Battery (Aufladung)", "", lineChartSVG(batteryPoints, COLORS.battery, { minZero: true }))}
+      ${statCard("Schritte (letzter Tag)", latest(stepsPoints) != null ? latest(stepsPoints).toLocaleString("de-DE") : '<span class="empty">n/a</span>', lineChartSVG(stepsPoints, COLORS.steps, { minZero: true }))}
+    </div>
+  </section>`;
 }
 
 function renderWorkouts(activities) {
-  const list = Object.values(activities).sort((a, b) =>
-    (b.startTimeLocal || "").localeCompare(a.startTimeLocal || "")
-  );
+  const list = Object.values(activities).sort((a, b) => (b.startTimeLocal || "").localeCompare(a.startTimeLocal || ""));
   if (list.length === 0) {
-    return `<div class="card workouts"><h2>Workouts</h2><p class="empty">No workouts synced yet</p></div>`;
+    return `<section><div class="section-head"><h2>Workouts</h2></div><div class="table-card"><p class="empty">Noch keine Workouts synced</p></div></section>`;
   }
   const rows = list
     .map((a) => {
       const date = (a.startTimeLocal || "").split(" ")[0] || "n/a";
-      const name = a.activityName || "Activity";
+      const name = a.activityName || "Aktivität";
       const type = (a.activityType || {}).typeKey || "n/a";
       const dist = a.distance ? (a.distance / 1000).toFixed(2) + " km" : "n/a";
       const dur = a.duration ? Math.round(a.duration / 60) + " min" : "n/a";
@@ -154,14 +441,36 @@ function renderWorkouts(activities) {
       return `<tr><td>${date}</td><td>${name}</td><td>${type}</td><td>${dist}</td><td>${dur}</td><td>${hr}</td></tr>`;
     })
     .join("");
-  return `<div class="card workouts">
-    <h2>Recent Workouts</h2>
-    <table>
-      <thead><tr><th>Date</th><th>Name</th><th>Type</th><th>Distance</th><th>Duration</th><th>Avg HR</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-  </div>`;
+  return `<section>
+    <div class="section-head"><h2>Letzte Workouts</h2></div>
+    <div class="table-card">
+      <table>
+        <thead><tr><th>Datum</th><th>Name</th><th>Typ</th><th>Distanz</th><th>Dauer</th><th>Ø HF</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </section>`;
 }
+
+function renderGlossary() {
+  const terms = [
+    { t: "Training Readiness", d: "Garmins Tagesscore (0–100), der Schlaf, HRV, Erholung vom letzten Training und Schlafdefizit kombiniert. Hoch = Körper ist bereit für Belastung, niedrig = Erholung geht vor." },
+    { t: "Body Battery", d: "Ein 0–100-Energiespeicher, der über den Tag durch Aktivität sinkt und durch Ruhe/Schlaf wieder auflädt. Zeigt an, wie viel \"Reserve\" du gerade hast." },
+    { t: "HRV (Herzfrequenzvariabilität)", d: "Schwankung der Zeit zwischen Herzschlägen. Höhere Werte deuten meist auf ein gut erholtes, wenig gestresstes Nervensystem hin; ein Abfall gegenüber deinem Normalwert ist oft ein früher Hinweis auf Übermüdung oder beginnende Krankheit." },
+    { t: "Ruhepuls (RHR)", d: "Herzfrequenz im Ruhezustand, meist morgens gemessen. Ein Anstieg von mehreren Schlägen über deinen Normalwert kann auf unvollständige Erholung, Stress oder eine beginnende Erkältung hindeuten." },
+    { t: "Stress Score", d: "Wird aus der Herzfrequenzvariabilität über den Tag abgeleitet (0–100). Nicht nur mentaler Stress — auch Training selbst erzeugt einen hohen Stresswert, das ist normal." },
+    { t: "Easy Pace / Grundlagentempo", d: "Bewusst langsames Lauftempo, bei dem sich das Herz-Kreislauf-System (Mitochondrien, Kapillarisierung) aerob anpasst, ohne zusätzliche Ermüdung. Regelmäßig zu schnell gelaufene \"Easy Runs\" sind eine der häufigsten Ursachen für ausbleibenden Formaufbau trotz hartem Training." },
+    { t: "HMP (Halbmarathon-Pace)", d: "Das Zieltempo für den Halbmarathon selbst — wird in der Vorbereitung gezielt in kontrollierten Blöcken trainiert, um Tempogefühl und Ökonomie bei Renntempo aufzubauen." },
+  ];
+  const cards = terms.map((x) => `<div class="term"><h4>${x.t}</h4><p>${x.d}</p></div>`).join("");
+  return `<section>
+    <div class="section-head"><h2>Deine Werte verstehen</h2></div>
+    <div class="glossary">${cards}</div>
+    <p class="disclaimer">Die Hinweise oben werden automatisch aus deinen Garmin-Zahlen und deinem Trainingsplan berechnet (einfache Regeln, keine KI-Ferndiagnose). Bei anhaltenden Beschwerden, ungewöhnlichen Werten oder Unsicherheit zur Trainingssteuerung sprich mit deinem Trainer oder Arzt.</p>
+  </section>`;
+}
+
+/* ---------- main ---------- */
 
 async function main() {
   const app = document.getElementById("app");
@@ -170,7 +479,7 @@ async function main() {
     const res = await fetch("../garmin/data.json");
     data = await res.json();
   } catch (e) {
-    app.innerHTML = `<p class="empty">Could not load garmin/data.json. Make sure you're viewing this via the local server, and that garmin_sync.py has been run at least once.</p>`;
+    app.innerHTML = `<div class="wrap" style="padding-top:40px"><p class="empty">garmin/data.json konnte nicht geladen werden. Läuft die Seite über den lokalen Server, und wurde garmin_sync.py schon einmal ausgeführt?</p></div>`;
     return;
   }
 
@@ -183,29 +492,21 @@ async function main() {
   }
 
   const todayStr = new Date().toISOString().split("T")[0];
-  const activityDates = new Set(
-    Object.values(data.activities || {}).map((a) => (a.startTimeLocal || "").split(" ")[0])
-  );
+  const activities = data.activities || {};
+  const activityDates = new Set(Object.values(activities).map((a) => (a.startTimeLocal || "").split(" ")[0]));
 
   const wellness = data.wellness || {};
   const dates = Object.keys(wellness).sort();
-  const activities = data.activities || {};
-
-  document.getElementById("range-label").textContent =
-    dates.length > 0 ? `${dates[0]} to ${dates[dates.length - 1]} · ${Object.keys(activities).length} workout(s)` : "No data yet";
 
   if (dates.length === 0) {
-    app.innerHTML = `<p class="empty">No wellness data yet. Run garmin_sync.py to pull some.</p>`;
+    app.innerHTML = `<div class="wrap" style="padding-top:40px"><p class="empty">Noch keine Wellness-Daten. Führe garmin_sync.py aus.</p></div>`;
     return;
   }
 
-  const latest = wellness[dates[dates.length - 1]];
-
   const rhrPoints = dates.map((d) => {
-    const rhr = wellness[d].rhr;
     let val = null;
     try {
-      const metrics = rhr?.allMetrics?.metricsMap?.WELLNESS_RESTING_HEART_RATE || [];
+      const metrics = wellness[d].rhr?.allMetrics?.metricsMap?.WELLNESS_RESTING_HEART_RATE || [];
       const found = metrics.find((m) => m.value != null);
       val = found ? found.value : null;
     } catch (e) {}
@@ -214,67 +515,32 @@ async function main() {
 
   const readinessPoints = dates.map((d) => {
     const r = wellness[d].training_readiness;
-    const val = Array.isArray(r) && r[0] ? r[0].score : null;
-    return { label: d, value: val };
+    return { label: d, value: Array.isArray(r) && r[0] ? r[0].score : null };
   });
 
-  const stressPoints = dates.map((d) => {
-    const s = wellness[d].stress;
-    return { label: d, value: s ? s.avgStressLevel : null };
-  });
-
-  const batteryPoints = dates.map((d) => {
-    const b = wellness[d].body_battery;
-    return { label: d, value: b ? b.charged : null };
-  });
-
+  const stressPoints = dates.map((d) => ({ label: d, value: wellness[d].stress ? wellness[d].stress.avgStressLevel : null }));
+  const batteryPoints = dates.map((d) => ({ label: d, value: wellness[d].body_battery ? wellness[d].body_battery.charged : null }));
   const stepsPoints = dates.map((d) => {
     const st = wellness[d].steps;
     if (!Array.isArray(st)) return { label: d, value: null };
-    const total = st.reduce((sum, s) => sum + (s.steps || 0), 0);
-    return { label: d, value: total };
+    return { label: d, value: st.reduce((sum, s) => sum + (s.steps || 0), 0) };
   });
 
-  const latestRhr = rhrPoints[rhrPoints.length - 1]?.value;
-  const latestReadiness = readinessPoints[readinessPoints.length - 1]?.value;
-  const latestStress = stressPoints[stressPoints.length - 1]?.value;
-  const latestSteps = stepsPoints[stepsPoints.length - 1]?.value;
+  const weeklyStats = computeWeeklyStats(plan, activities);
+  const currentWeekLabel = plan ? plan.sessions.find((s) => s.date === todayStr)?.week : null;
+  const insights = computeInsights(wellness, dates, activities, plan, todayStr);
 
-  app.innerHTML = [
-    plan ? renderCountdown(plan, todayStr) : "",
-    plan ? renderTrainingPlan(plan, activityDates, todayStr) : "",
-    card(
-      "Resting Heart Rate",
-      latestRhr != null ? `${latestRhr}<span class="unit">bpm</span>` : '<span class="empty">n/a</span>',
-      lineChartSVG(rhrPoints, COLORS.rhr),
-      "chart-card"
-    ),
-    card(
-      "Training Readiness",
-      readinessBadge(latestReadiness),
-      lineChartSVG(readinessPoints, COLORS.readiness, { minZero: true }),
-      "chart-card"
-    ),
-    card(
-      "Average Stress",
-      latestStress != null ? `${latestStress}<span class="unit">/ 100</span>` : '<span class="empty">n/a</span>',
-      lineChartSVG(stressPoints, COLORS.stress, { minZero: true }),
-      "chart-card"
-    ),
-    card(
-      "Body Battery Charged",
-      "",
-      lineChartSVG(batteryPoints, COLORS.battery, { minZero: true }),
-      "chart-card"
-    ),
-    card(
-      "Steps (latest day)",
-      latestSteps != null ? `${latestSteps.toLocaleString()}` : '<span class="empty">n/a</span>',
-      lineChartSVG(stepsPoints, COLORS.steps, { minZero: true }),
-      "chart-card"
-    ),
-    renderWorkouts(activities),
-  ].join("");
+  app.innerHTML =
+    renderHero(plan, todayStr, dates, Object.keys(activities).length) +
+    `<div class="wrap">` +
+    renderWeekStats(weeklyStats, currentWeekLabel) +
+    renderInsights(insights) +
+    (plan ? renderTrainingPlan(plan, activityDates, todayStr) : "") +
+    renderWeeklyVolumeChart(weeklyStats) +
+    renderRecoveryCharts(rhrPoints, readinessPoints, stressPoints, batteryPoints, stepsPoints) +
+    renderWorkouts(activities) +
+    renderGlossary() +
+    `</div>`;
 }
 
 main();
