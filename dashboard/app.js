@@ -135,16 +135,34 @@ function daysUntil(dateStr, todayStr) {
   return Math.round((d - t) / 86400000);
 }
 
-function sessionStatus(session, activityDates, todayStr) {
+function activityTypesOnDate(activities, date) {
+  return Object.values(activities)
+    .filter((a) => (a.startTimeLocal || "").startsWith(date))
+    .map((a) => ((a.activityType || {}).typeKey || "").toLowerCase());
+}
+
+const BIKE_PLAN_TYPES = ["RAD", "RAD+EASY"];
+
+function sessionStatus(session, activities, todayStr) {
+  const typesToday = activityTypesOnDate(activities, session.date);
   if (session.type === "REST") return "rest";
   if (session.date > todayStr) return "upcoming";
-  if (activityDates.has(session.date)) return "done";
+  if (typesToday.length > 0) {
+    const plannedIsBike = BIKE_PLAN_TYPES.includes(session.type);
+    const didRun = typesToday.some((t) => t.includes("running"));
+    const didBike = typesToday.some((t) => t.includes("cycl") || t.includes("biking"));
+    if (!plannedIsBike && didBike && !didRun) return "substituted-bike";
+    if (plannedIsBike && didRun && !didBike) return "substituted-run";
+    return "done";
+  }
   if (session.date === todayStr) return "today";
   return "missed";
 }
 
 const STATUS_BADGE = {
   done: '<span class="badge good">Erledigt</span>',
+  "substituted-bike": '<span class="badge low">Ersetzt (Rad statt Lauf)</span>',
+  "substituted-run": '<span class="badge low">Ersetzt (Lauf statt Rad)</span>',
   missed: '<span class="badge poor">Verpasst</span>',
   upcoming: '<span class="badge na">Kommt</span>',
   today: '<span class="badge moderate">Heute</span>',
@@ -251,8 +269,16 @@ function computeWeeklyStats(plan, activities) {
   Object.values(activities).forEach((a) => {
     const date = (a.startTimeLocal || "").split(" ")[0];
     const week = dateToWeek[date] || "?";
-    if (!weeks[week]) weeks[week] = { km: 0, hours: 0, count: 0 };
-    weeks[week].km += (a.distance || 0) / 1000;
+    if (!weeks[week]) weeks[week] = { km: 0, bikeKm: 0, hours: 0, count: 0 };
+    const actType = ((a.activityType || {}).typeKey || "").toLowerCase();
+    const distKm = (a.distance || 0) / 1000;
+    // The plan's weekly km target is a running target — cycling km aren't
+    // comparable distance-for-distance, so keep them out of "Volumen".
+    if (actType.includes("running")) {
+      weeks[week].km += distKm;
+    } else if (actType.includes("cycl") || actType.includes("biking")) {
+      weeks[week].bikeKm += distKm;
+    }
     weeks[week].hours += (a.duration || 0) / 3600;
     weeks[week].count += 1;
   });
@@ -262,6 +288,7 @@ function computeWeeklyStats(plan, activities) {
     .map((w) => ({
       label: w,
       actual: weeks[w].km,
+      bikeKm: weeks[w].bikeKm,
       hours: weeks[w].hours,
       count: weeks[w].count,
       planned: weekPlanned[w] || null,
@@ -311,6 +338,8 @@ function computeInsights(wellness, dates, activities, plan, todayStr) {
     const date = (a.startTimeLocal || "").split(" ")[0];
     const planned = plannedByDate[date];
     if (!planned || !["EASY", "LONG", "RECOVERY"].includes(planned.type)) return;
+    const actType = ((a.activityType || {}).typeKey || "").toLowerCase();
+    if (!actType.includes("running")) return; // don't compare bike/other activities to a running pace target
     if (!a.distance || !a.duration) return;
     const range = parsePaceRangeSecPerKm(planned.title_and_target) || parsePaceRangeSecPerKm(planned.detail);
     if (!range) return;
@@ -608,7 +637,7 @@ function togglePlanRow(el) {
 }
 window.togglePlanRow = togglePlanRow;
 
-function renderTrainingPlan(plan, activityDates, todayStr, adjustments) {
+function renderTrainingPlan(plan, activities, todayStr, adjustments) {
   if (!plan || !plan.sessions || plan.sessions.length === 0) {
     return `<section><div class="section-head"><h2>Trainingsplan</h2></div><div class="table-card"><p class="empty">Kein Trainingsplan geladen</p></div></section>`;
   }
@@ -621,7 +650,7 @@ function renderTrainingPlan(plan, activityDates, todayStr, adjustments) {
 
   const rows = weekSessions
     .map((s) => {
-      const status = sessionStatus(s, activityDates, todayStr);
+      const status = sessionStatus(s, activities, todayStr);
       const adj = adjustments[s.date];
       const rowClass = s.date === todayStr ? "is-today" : "";
       const typCell = adj
@@ -833,7 +862,7 @@ async function main() {
     renderCoachTip(coachTip) +
     renderWeekStats(weeklyStats, currentWeekLabel) +
     renderInsights(insights) +
-    (plan ? renderTrainingPlan(plan, activityDates, todayStr, adjustments) : "") +
+    (plan ? renderTrainingPlan(plan, activities, todayStr, adjustments) : "") +
     renderWeeklyVolumeChart(weeklyStats) +
     renderRecoveryCharts(rhrPoints, readinessPoints, stressPoints, batteryPoints, stepsPoints) +
     renderWorkouts(activities) +
