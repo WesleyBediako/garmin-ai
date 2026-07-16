@@ -184,6 +184,34 @@ function fmtPace(secPerKm) {
   return `${m}:${s.toString().padStart(2, "0")}/km`;
 }
 
+/* ---------- manual plan swaps (explicit user overrides, persist across syncs) ---------- */
+
+function applyManualSwaps(sessions, swaps) {
+  if (!swaps || !swaps.length) return sessions;
+  const byDate = {};
+  sessions.forEach((s) => (byDate[s.date] = s));
+  const swapMap = {};
+  swaps.forEach((sw) => {
+    swapMap[sw.date_a] = { otherDate: sw.date_b, note: sw.note };
+    swapMap[sw.date_b] = { otherDate: sw.date_a, note: sw.note };
+  });
+  return sessions.map((s) => {
+    const swap = swapMap[s.date];
+    if (!swap || !byDate[swap.otherDate]) return s;
+    const other = byDate[swap.otherDate];
+    return {
+      ...s,
+      type: other.type,
+      type_label: other.type_label,
+      title_and_target: other.title_and_target,
+      detail: other.detail,
+      note: other.note,
+      _original: { type_label: s.type_label, title_and_target: s.title_and_target, detail: s.detail, note: s.note },
+      _swapNote: swap.note,
+    };
+  });
+}
+
 /* ---------- plan phase awareness ---------- */
 
 function getWeekPhase(block) {
@@ -652,10 +680,17 @@ function renderTrainingPlan(plan, activities, todayStr, adjustments) {
     .map((s) => {
       const status = sessionStatus(s, activities, todayStr);
       const adj = adjustments[s.date];
+      const swapped = !!s._original;
       const rowClass = s.date === todayStr ? "is-today" : "";
-      const typCell = adj
-        ? `<span style="text-decoration:line-through;color:var(--muted)">${s.type_label}</span><br><strong style="color:var(--warn)">Easy Run</strong> <span class="badge warn">Angepasst</span>`
-        : s.type_label;
+
+      let typCell;
+      if (swapped) {
+        typCell = `<span style="text-decoration:line-through;color:var(--muted)">${s._original.type_label}</span><br><strong style="color:var(--accent)">${s.type_label}</strong> <span class="badge na">Getauscht</span>`;
+      } else if (adj) {
+        typCell = `<span style="text-decoration:line-through;color:var(--muted)">${s.type_label}</span><br><strong style="color:var(--warn)">Easy Run</strong> <span class="badge warn">Angepasst</span>`;
+      } else {
+        typCell = s.type_label;
+      }
       const paceCell = adj ? "locker" : extractPaceLabel(s);
       const distCell = adj ? "~gleich" : extractDistanceLabel(s);
 
@@ -667,9 +702,10 @@ function renderTrainingPlan(plan, activities, todayStr, adjustments) {
         <td>${STATUS_BADGE[status]}</td>
       </tr>`;
 
+      const swapNote = swapped ? `<p style="margin:0 0 8px;font-size:0.85rem;color:var(--accent)">↳ ${s._swapNote}</p>` : "";
       const adjNote = adj ? `<p style="margin:0 0 8px;font-size:0.85rem;color:var(--warn)">↳ ${adj.reason}</p>` : "";
       const detailRow = `<tr class="${rowClass}" style="display:none"><td colspan="5" style="background:var(--bg-soft)">
-          <div style="padding:14px 4px">${adjNote}${renderDetailSegments(s)}</div>
+          <div style="padding:14px 4px">${swapNote}${adjNote}${renderDetailSegments(s)}</div>
         </td></tr>`;
 
       return row + detailRow;
@@ -812,6 +848,17 @@ async function main() {
     plan = await planRes.json();
   } catch (e) {
     plan = null;
+  }
+
+  let manualAdjustments = null;
+  try {
+    const manualRes = await fetch("../garmin/manual_adjustments.json");
+    manualAdjustments = await manualRes.json();
+  } catch (e) {
+    manualAdjustments = null;
+  }
+  if (plan && manualAdjustments && manualAdjustments.swaps) {
+    plan.sessions = applyManualSwaps(plan.sessions, manualAdjustments.swaps);
   }
 
   const todayStr = new Date().toISOString().split("T")[0];
