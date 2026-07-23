@@ -208,6 +208,30 @@ function applyManualSwaps(sessions, swaps) {
       note: other.note,
       _original: { type_label: s.type_label, title_and_target: s.title_and_target, detail: s.detail, note: s.note },
       _swapNote: swap.note,
+      _kind: "swap",
+    };
+  });
+}
+
+// Freeform manual overrides — for changes that aren't a clean swap between
+// two existing plan days (e.g. a custom brick session dictated by the user).
+function applyManualOverrides(sessions, overrides) {
+  if (!overrides || !overrides.length) return sessions;
+  const byDate = {};
+  overrides.forEach((o) => (byDate[o.date] = o));
+  return sessions.map((s) => {
+    const o = byDate[s.date];
+    if (!o) return s;
+    return {
+      ...s,
+      type: o.type,
+      type_label: o.type_label,
+      title_and_target: o.title_and_target,
+      detail: o.detail,
+      note: "note" in o ? o.note : s.note,
+      _original: { type_label: s.type_label, title_and_target: s.title_and_target, detail: s.detail, note: s.note },
+      _swapNote: o.reason,
+      _kind: "override",
     };
   });
 }
@@ -685,7 +709,8 @@ function renderTrainingPlan(plan, activities, todayStr, adjustments) {
 
       let typCell;
       if (swapped) {
-        typCell = `<span style="text-decoration:line-through;color:var(--muted)">${s._original.type_label}</span><br><strong style="color:var(--accent)">${s.type_label}</strong> <span class="badge na">Getauscht</span>`;
+        const badgeText = s._kind === "override" ? "Manuell angepasst" : "Getauscht";
+        typCell = `<span style="text-decoration:line-through;color:var(--muted)">${s._original.type_label}</span><br><strong style="color:var(--accent)">${s.type_label}</strong> <span class="badge na">${badgeText}</span>`;
       } else if (adj) {
         typCell = `<span style="text-decoration:line-through;color:var(--muted)">${s.type_label}</span><br><strong style="color:var(--warn)">Easy Run</strong> <span class="badge warn">Angepasst</span>`;
       } else {
@@ -859,6 +884,9 @@ async function main() {
   }
   if (plan && manualAdjustments && manualAdjustments.swaps) {
     plan.sessions = applyManualSwaps(plan.sessions, manualAdjustments.swaps);
+  }
+  if (plan && manualAdjustments && manualAdjustments.overrides) {
+    plan.sessions = applyManualOverrides(plan.sessions, manualAdjustments.overrides);
   }
 
   const todayStr = new Date().toISOString().split("T")[0];
