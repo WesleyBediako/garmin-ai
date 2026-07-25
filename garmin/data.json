@@ -157214,6 +157214,114 @@
           "recoveryTimeChangePhrase": "NO_CHANGE_SLEEP"
         }
       ]
+    },
+    "2026-07-26": {
+      "sleep": {
+        "dailySleepDTO": {
+          "id": null,
+          "userProfilePK": 104409518,
+          "calendarDate": "2026-07-26",
+          "sleepTimeSeconds": null,
+          "napTimeSeconds": null,
+          "sleepWindowConfirmed": null,
+          "sleepWindowConfirmationType": null,
+          "sleepStartTimestampGMT": null,
+          "sleepEndTimestampGMT": null,
+          "sleepStartTimestampLocal": null,
+          "sleepEndTimestampLocal": null,
+          "autoSleepStartTimestampGMT": null,
+          "autoSleepEndTimestampGMT": null,
+          "sleepQualityTypePK": null,
+          "sleepResultTypePK": null,
+          "unmeasurableSleepSeconds": null,
+          "deepSleepSeconds": null,
+          "lightSleepSeconds": null,
+          "remSleepSeconds": null,
+          "awakeSleepSeconds": null,
+          "deviceRemCapable": false,
+          "retro": false,
+          "sleepNeed": {
+            "userProfilePk": 104409518,
+            "calendarDate": "2026-07-26",
+            "deviceId": 3471323853,
+            "timestampGmt": "2026-07-25T13:36:39",
+            "baseline": 480,
+            "actual": 530,
+            "feedback": "HIGHLY_INCREASED",
+            "trainingFeedback": "TODAYS_LOAD_AND_CHRONIC",
+            "sleepHistoryAdjustment": "INCREASING",
+            "hrvAdjustment": "NO_DATA",
+            "napAdjustment": "NO_CHANGE",
+            "displayedForTheDay": true,
+            "preferredActivityTracker": true
+          }
+        },
+        "sleepMovement": null,
+        "remSleepData": null,
+        "sleepLevels": null
+      },
+      "hrv": null,
+      "rhr": {
+        "userProfileId": 104409518,
+        "statisticsStartDate": "2026-07-26",
+        "statisticsEndDate": "2026-07-26",
+        "allMetrics": {
+          "metricsMap": {}
+        },
+        "groupedMetrics": null
+      },
+      "body_battery": {
+        "date": "2026-07-26",
+        "charged": null,
+        "drained": null,
+        "startTimestampGMT": null,
+        "endTimestampGMT": null,
+        "startTimestampLocal": null,
+        "endTimestampLocal": null,
+        "bodyBatteryValuesArray": [
+          [
+            1785024000001,
+            null
+          ],
+          [
+            1785024000002,
+            null
+          ],
+          [
+            1785024000003,
+            null
+          ],
+          [
+            1785024000004,
+            null
+          ],
+          [
+            1785024000005,
+            null
+          ],
+          [
+            1785024000006,
+            null
+          ]
+        ],
+        "bodyBatteryValueDescriptorDTOList": null
+      },
+      "stress": {
+        "userProfilePK": 104409518,
+        "calendarDate": "2026-07-26",
+        "startTimestampGMT": null,
+        "endTimestampGMT": null,
+        "startTimestampLocal": null,
+        "endTimestampLocal": null,
+        "maxStressLevel": null,
+        "avgStressLevel": null,
+        "stressChartValueOffset": null,
+        "stressChartYAxisOrigin": null,
+        "stressValueDescriptorsDTOList": [],
+        "stressValuesArray": []
+      },
+      "steps": [],
+      "training_readiness": []
     }
   },
   "activities": {
@@ -160972,15 +161080,15 @@
       "endTimeGMT": "2026-07-25 13:36:14",
       "qualifyingDive": false,
       "activityUUID": "a708eb31-7b3d-4be3-af7a-545b43006ec2",
-      "purposeful": false,
-      "parent": false,
-      "favorite": false,
-      "decoDive": false,
       "pr": false,
-      "manualActivity": false,
-      "autoCalcCalories": false,
+      "atpActivity": false,
       "elevationCorrected": false,
-      "atpActivity": false
+      "purposeful": false,
+      "manualActivity": false,
+      "decoDive": false,
+      "autoCalcCalories": false,
+      "favorite": false,
+      "parent": false
     },
     "23723421019": {
       "activityId": 23723421019,
@@ -161188,15 +161296,15 @@
       "endTimeGMT": "2026-07-25 07:57:09",
       "qualifyingDive": false,
       "activityUUID": "b9d26487-922c-4eba-8965-ba927baa046c",
-      "purposeful": false,
-      "parent": false,
-      "favorite": false,
-      "decoDive": false,
       "pr": false,
-      "manualActivity": false,
-      "autoCalcCalories": false,
+      "atpActivity": false,
       "elevationCorrected": false,
-      "atpActivity": false
+      "purposeful": false,
+      "manualActivity": false,
+      "decoDive": false,
+      "autoCalcCalories": false,
+      "favorite": false,
+      "parent": false
     }
   }
 }
