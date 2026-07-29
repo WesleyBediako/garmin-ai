@@ -222,17 +222,24 @@ function applyManualOverrides(sessions, overrides) {
   return sessions.map((s) => {
     const o = byDate[s.date];
     if (!o) return s;
-    return {
+    const pick = (field) => (field in o ? o[field] : s[field]);
+    const merged = {
       ...s,
-      type: o.type,
-      type_label: o.type_label,
-      title_and_target: o.title_and_target,
-      detail: o.detail,
-      note: "note" in o ? o.note : s.note,
-      _original: { type_label: s.type_label, title_and_target: s.title_and_target, detail: s.detail, note: s.note },
-      _swapNote: o.reason,
-      _kind: "override",
+      type: pick("type"),
+      type_label: pick("type_label"),
+      title_and_target: pick("title_and_target"),
+      detail: pick("detail"),
+      note: pick("note"),
+      week_volume: pick("week_volume"),
     };
+    // "silent" overrides (e.g. just correcting the week's km target) don't
+    // show a badge or strikethrough — only visible content changes do.
+    if (!o.silent) {
+      merged._original = { type_label: s.type_label, title_and_target: s.title_and_target, detail: s.detail, note: s.note };
+      merged._swapNote = o.reason;
+      merged._kind = "override";
+    }
+    return merged;
   });
 }
 

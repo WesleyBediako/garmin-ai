@@ -200778,11 +200778,11 @@
       "body_battery": {
         "date": "2026-07-29",
         "charged": 50,
-        "drained": 54,
+        "drained": 55,
         "startTimestampGMT": "2026-07-28T23:00:00.0",
-        "endTimestampGMT": "2026-07-29T17:10:00.0",
+        "endTimestampGMT": "2026-07-29T17:48:00.0",
         "startTimestampLocal": "2026-07-29T00:00:00.0",
-        "endTimestampLocal": "2026-07-29T18:10:00.0",
+        "endTimestampLocal": "2026-07-29T18:48:00.0",
         "bodyBatteryValuesArray": [
           [
             1785279600000,
@@ -200793,20 +200793,20 @@
             76
           ],
           [
-            1785301560000,
-            75
+            1785302280000,
+            73
           ],
           [
-            1785322980000,
-            40
+            1785324600000,
+            38
           ],
           [
-            1785323520000,
-            40
+            1785324960000,
+            38
           ],
           [
-            1785342240000,
-            24
+            1785346560000,
+            23
           ]
         ],
         "bodyBatteryValueDescriptorDTOList": [
@@ -200820,10 +200820,10 @@
           }
         ],
         "bodyBatteryDynamicFeedbackEvent": {
-          "eventTimestampGmt": "2026-07-29T16:29:17.0",
+          "eventTimestampGmt": "2026-07-29T17:13:05.0",
           "bodyBatteryLevel": "MODERATE",
-          "feedbackShortType": "DAY_NOT_STRESS_DATA_AND_INTENSIVE_EXERCISE",
-          "feedbackLongType": "DAY_NOT_STRESS_DATA_AND_INTENSIVE_EXERCISE"
+          "feedbackShortType": "DAY_RECOVERING_AND_INTENSIVE_EXERCISE",
+          "feedbackLongType": "DAY_RECOVERING_AND_INTENSIVE_EXERCISE"
         },
         "bodyBatteryActivityEvent": [
           {
@@ -200850,9 +200850,9 @@
         "userProfilePK": 104409518,
         "calendarDate": "2026-07-29",
         "startTimestampGMT": "2026-07-28T23:00:00.0",
-        "endTimestampGMT": "2026-07-29T17:10:00.0",
+        "endTimestampGMT": "2026-07-29T17:48:00.0",
         "startTimestampLocal": "2026-07-29T00:00:00.0",
-        "endTimestampLocal": "2026-07-29T18:10:00.0",
+        "endTimestampLocal": "2026-07-29T18:48:00.0",
         "maxStressLevel": 92,
         "avgStressLevel": 26,
         "stressChartValueOffset": 1,
@@ -202322,7 +202322,55 @@
           ],
           [
             1785344940000,
-            35
+            34
+          ],
+          [
+            1785345120000,
+            23
+          ],
+          [
+            1785345300000,
+            25
+          ],
+          [
+            1785345480000,
+            20
+          ],
+          [
+            1785345660000,
+            18
+          ],
+          [
+            1785345840000,
+            23
+          ],
+          [
+            1785346020000,
+            -1
+          ],
+          [
+            1785346200000,
+            -1
+          ],
+          [
+            1785346380000,
+            56
+          ],
+          [
+            1785346560000,
+            22
+          ],
+          [
+            1785346740000,
+            23
+          ],
+          [
+            1785346920000,
+            22
+          ],
+          [
+            1785347100000,
+            22
           ]
         ],
         "bodyBatteryValueDescriptorsDTOList": [
@@ -204527,6 +204575,78 @@
             "MEASURED",
             24,
             3.0
+          ],
+          [
+            1785345120000,
+            "MEASURED",
+            24,
+            3.0
+          ],
+          [
+            1785345300000,
+            "MEASURED",
+            24,
+            3.0
+          ],
+          [
+            1785345480000,
+            "MEASURED",
+            24,
+            3.0
+          ],
+          [
+            1785345660000,
+            "MEASURED",
+            24,
+            3.0
+          ],
+          [
+            1785345840000,
+            "MEASURED",
+            24,
+            3.0
+          ],
+          [
+            1785346020000,
+            "MEASURED",
+            24,
+            3.0
+          ],
+          [
+            1785346200000,
+            "MEASURED",
+            24,
+            3.0
+          ],
+          [
+            1785346380000,
+            "MEASURED",
+            24,
+            3.0
+          ],
+          [
+            1785346560000,
+            "MEASURED",
+            23,
+            3.0
+          ],
+          [
+            1785346740000,
+            "MEASURED",
+            23,
+            3.0
+          ],
+          [
+            1785346920000,
+            "MEASURED",
+            23,
+            3.0
+          ],
+          [
+            1785347100000,
+            "MEASURED",
+            23,
+            3.0
           ]
         ]
       },
@@ -205110,6 +205230,30 @@
         {
           "startGMT": "2026-07-29T17:00:00.0",
           "endGMT": "2026-07-29T17:15:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-07-29T17:15:00.0",
+          "endGMT": "2026-07-29T17:30:00.0",
+          "steps": 100,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": false
+        },
+        {
+          "startGMT": "2026-07-29T17:30:00.0",
+          "endGMT": "2026-07-29T17:45:00.0",
+          "steps": 35,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-07-29T17:45:00.0",
+          "endGMT": "2026-07-29T18:00:00.0",
           "steps": 0,
           "pushes": 0,
           "primaryActivityLevel": "sedentary",
@@ -209587,15 +209731,15 @@
       "endTimeGMT": "2026-07-28 06:31:17",
       "qualifyingDive": false,
       "activityUUID": "1935d81d-bd08-436d-a7cb-bf7a3e9ea2bb",
+      "parent": false,
+      "favorite": false,
       "decoDive": false,
-      "elevationCorrected": false,
-      "atpActivity": false,
       "purposeful": false,
+      "pr": false,
       "manualActivity": false,
       "autoCalcCalories": false,
-      "parent": false,
-      "pr": false,
-      "favorite": false
+      "elevationCorrected": false,
+      "atpActivity": false
     },
     "23772055054": {
       "activityId": 23772055054,
@@ -209881,15 +210025,15 @@
       "endTimeGMT": "2026-07-29 06:24:20",
       "qualifyingDive": false,
       "activityUUID": "b0e3cad3-0126-4aaf-85d8-089800480745",
+      "parent": false,
+      "favorite": false,
       "decoDive": false,
-      "elevationCorrected": false,
-      "atpActivity": false,
       "purposeful": false,
+      "pr": false,
       "manualActivity": false,
       "autoCalcCalories": false,
-      "parent": false,
-      "pr": false,
-      "favorite": false
+      "elevationCorrected": false,
+      "atpActivity": false
     }
   }
 }
