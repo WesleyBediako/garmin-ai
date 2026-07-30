@@ -218402,6 +218402,114 @@
           "recoveryTimeChangePhrase": null
         }
       ]
+    },
+    "2026-07-31": {
+      "sleep": {
+        "dailySleepDTO": {
+          "id": null,
+          "userProfilePK": 104409518,
+          "calendarDate": "2026-07-31",
+          "sleepTimeSeconds": null,
+          "napTimeSeconds": null,
+          "sleepWindowConfirmed": null,
+          "sleepWindowConfirmationType": null,
+          "sleepStartTimestampGMT": null,
+          "sleepEndTimestampGMT": null,
+          "sleepStartTimestampLocal": null,
+          "sleepEndTimestampLocal": null,
+          "autoSleepStartTimestampGMT": null,
+          "autoSleepEndTimestampGMT": null,
+          "sleepQualityTypePK": null,
+          "sleepResultTypePK": null,
+          "unmeasurableSleepSeconds": null,
+          "deepSleepSeconds": null,
+          "lightSleepSeconds": null,
+          "remSleepSeconds": null,
+          "awakeSleepSeconds": null,
+          "deviceRemCapable": false,
+          "retro": false,
+          "sleepNeed": {
+            "userProfilePk": 104409518,
+            "calendarDate": "2026-07-31",
+            "deviceId": 3471323853,
+            "timestampGmt": "2026-07-30T06:45:40",
+            "baseline": 480,
+            "actual": 540,
+            "feedback": "HIGHLY_INCREASED",
+            "trainingFeedback": "CHRONIC",
+            "sleepHistoryAdjustment": "INCREASING",
+            "hrvAdjustment": "NO_DATA",
+            "napAdjustment": "NO_CHANGE",
+            "displayedForTheDay": true,
+            "preferredActivityTracker": true
+          }
+        },
+        "sleepMovement": null,
+        "remSleepData": null,
+        "sleepLevels": null
+      },
+      "hrv": null,
+      "rhr": {
+        "userProfileId": 104409518,
+        "statisticsStartDate": "2026-07-31",
+        "statisticsEndDate": "2026-07-31",
+        "allMetrics": {
+          "metricsMap": {}
+        },
+        "groupedMetrics": null
+      },
+      "body_battery": {
+        "date": "2026-07-31",
+        "charged": null,
+        "drained": null,
+        "startTimestampGMT": null,
+        "endTimestampGMT": null,
+        "startTimestampLocal": null,
+        "endTimestampLocal": null,
+        "bodyBatteryValuesArray": [
+          [
+            1785456000001,
+            null
+          ],
+          [
+            1785456000002,
+            null
+          ],
+          [
+            1785456000003,
+            null
+          ],
+          [
+            1785456000004,
+            null
+          ],
+          [
+            1785456000005,
+            null
+          ],
+          [
+            1785456000006,
+            null
+          ]
+        ],
+        "bodyBatteryValueDescriptorDTOList": null
+      },
+      "stress": {
+        "userProfilePK": 104409518,
+        "calendarDate": "2026-07-31",
+        "startTimestampGMT": null,
+        "endTimestampGMT": null,
+        "startTimestampLocal": null,
+        "endTimestampLocal": null,
+        "maxStressLevel": null,
+        "avgStressLevel": null,
+        "stressChartValueOffset": null,
+        "stressChartYAxisOrigin": null,
+        "stressValueDescriptorsDTOList": [],
+        "stressValuesArray": []
+      },
+      "steps": [],
+      "training_readiness": []
     }
   },
   "activities": {
@@ -223123,8 +223231,8 @@
         "typeKey": "running",
         "parentTypeId": 17,
         "isHidden": false,
-        "trimmable": true,
-        "restricted": false
+        "restricted": false,
+        "trimmable": true
       },
       "eventType": {
         "typeId": 9,
@@ -223335,15 +223443,15 @@
       "endTimeGMT": "2026-07-30 06:45:30",
       "qualifyingDive": false,
       "activityUUID": "ff65012c-c99d-4b40-95ef-0df3aea93c09",
-      "pr": false,
-      "parent": false,
-      "favorite": false,
-      "decoDive": false,
       "purposeful": false,
       "manualActivity": false,
-      "autoCalcCalories": false,
       "elevationCorrected": false,
-      "atpActivity": false
+      "atpActivity": false,
+      "favorite": false,
+      "decoDive": false,
+      "pr": false,
+      "parent": false,
+      "autoCalcCalories": false
     }
   }
 }
