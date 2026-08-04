@@ -268825,35 +268825,35 @@
       "body_battery": {
         "date": "2026-08-04",
         "charged": 42,
-        "drained": 40,
+        "drained": 52,
         "startTimestampGMT": "2026-08-03T22:00:00.0",
-        "endTimestampGMT": "2026-08-04T10:48:00.0",
+        "endTimestampGMT": "2026-08-04T14:48:00.0",
         "startTimestampLocal": "2026-08-04T00:00:00.0",
-        "endTimestampLocal": "2026-08-04T12:48:00.0",
+        "endTimestampLocal": "2026-08-04T16:48:00.0",
         "bodyBatteryValuesArray": [
           [
             1785794400000,
             49
           ],
           [
-            1785809700000,
-            82
-          ],
-          [
             1785813300000,
             88
           ],
           [
-            1785824640000,
-            63
+            1785814560000,
+            88
           ],
           [
-            1785825360000,
-            63
+            1785834360000,
+            53
           ],
           [
-            1785839940000,
-            51
+            1785837060000,
+            56
+          ],
+          [
+            1785853260000,
+            39
           ]
         ],
         "bodyBatteryValueDescriptorDTOList": [
@@ -268867,8 +268867,8 @@
           }
         ],
         "bodyBatteryDynamicFeedbackEvent": {
-          "eventTimestampGmt": "2026-08-04T10:08:58.0",
-          "bodyBatteryLevel": "MODERATE",
+          "eventTimestampGmt": "2026-08-04T14:05:30.0",
+          "bodyBatteryLevel": "HIGH",
           "feedbackShortType": "DAY_NOT_STRESS_DATA_AND_INTENSIVE_EXERCISE",
           "feedbackLongType": "DAY_NOT_STRESS_DATA_AND_INTENSIVE_EXERCISE"
         },
@@ -268899,6 +268899,15 @@
             "bodyBatteryImpact": 3,
             "feedbackType": "RECOVERY_BODY_BATTERY_INCREASE",
             "shortFeedback": "BODY_BATTERY_RECHARGE"
+          },
+          {
+            "eventType": "RECOVERY",
+            "eventStartTimeGmt": "2026-08-04T13:25:19.0",
+            "timezoneOffset": 7200000,
+            "durationInMilliseconds": 4320000,
+            "bodyBatteryImpact": -2,
+            "feedbackType": "RECOVERY_LONG_BODY_BATTERY_NOT_INCREASE",
+            "shortFeedback": "LONG_RESTFUL_PERIOD"
           }
         ],
         "endOfDayBodyBatteryDynamicFeedbackEvent": {
@@ -278569,8 +278578,8 @@
         "typeKey": "running",
         "parentTypeId": 17,
         "isHidden": false,
-        "trimmable": true,
-        "restricted": false
+        "restricted": false,
+        "trimmable": true
       },
       "eventType": {
         "typeId": 9,
@@ -278743,15 +278752,15 @@
       "endTimeGMT": "2026-08-04 05:21:49",
       "qualifyingDive": false,
       "activityUUID": "f2ee9d5c-5138-4c6f-8c7f-722081803bb5",
-      "autoCalcCalories": false,
+      "purposeful": false,
+      "manualActivity": false,
+      "decoDive": false,
+      "favorite": false,
+      "pr": false,
       "elevationCorrected": false,
       "atpActivity": false,
-      "favorite": false,
-      "decoDive": false,
-      "pr": false,
-      "parent": false,
-      "purposeful": false,
-      "manualActivity": false
+      "autoCalcCalories": false,
+      "parent": false
     }
   }
 }
