@@ -315392,7 +315392,7 @@
           "endGMT": "2026-08-08T20:45:00.0",
           "steps": 0,
           "pushes": 0,
-          "primaryActivityLevel": "sedentary",
+          "primaryActivityLevel": "sleeping",
           "activityLevelConstant": true
         },
         {
@@ -315400,7 +315400,7 @@
           "endGMT": "2026-08-08T21:00:00.0",
           "steps": 0,
           "pushes": 0,
-          "primaryActivityLevel": "sedentary",
+          "primaryActivityLevel": "sleeping",
           "activityLevelConstant": true
         },
         {
@@ -315408,7 +315408,7 @@
           "endGMT": "2026-08-08T21:15:00.0",
           "steps": 0,
           "pushes": 0,
-          "primaryActivityLevel": "sedentary",
+          "primaryActivityLevel": "sleeping",
           "activityLevelConstant": true
         },
         {
@@ -315416,7 +315416,7 @@
           "endGMT": "2026-08-08T21:30:00.0",
           "steps": 0,
           "pushes": 0,
-          "primaryActivityLevel": "sedentary",
+          "primaryActivityLevel": "sleeping",
           "activityLevelConstant": true
         },
         {
@@ -315424,7 +315424,7 @@
           "endGMT": "2026-08-08T21:45:00.0",
           "steps": 0,
           "pushes": 0,
-          "primaryActivityLevel": "sedentary",
+          "primaryActivityLevel": "sleeping",
           "activityLevelConstant": true
         },
         {
@@ -315432,7 +315432,7 @@
           "endGMT": "2026-08-08T22:00:00.0",
           "steps": 0,
           "pushes": 0,
-          "primaryActivityLevel": "sedentary",
+          "primaryActivityLevel": "sleeping",
           "activityLevelConstant": true
         }
       ],
@@ -315793,6 +315793,68 @@
         }
       ],
       "training_readiness": [
+        {
+          "userProfilePK": 104409518,
+          "calendarDate": "2026-08-09",
+          "timestamp": "2026-08-09T03:29:49.0",
+          "timestampLocal": "2026-08-09T05:29:49.0",
+          "deviceId": 3471323853,
+          "level": "HIGH",
+          "feedbackLong": "HIGH_RT_AVAILABLE_SS_UNKNOWN",
+          "feedbackShort": "WELL_RECOVERED",
+          "score": 75,
+          "sleepScore": null,
+          "sleepScoreFactorPercent": 0,
+          "sleepScoreFactorFeedback": "NONE",
+          "recoveryTime": 80,
+          "recoveryTimeFactorPercent": 97,
+          "recoveryTimeFactorFeedback": "GOOD",
+          "acwrFactorPercent": 100,
+          "acwrFactorFeedback": "VERY_GOOD",
+          "acuteLoad": 817,
+          "stressHistoryFactorPercent": 100,
+          "stressHistoryFactorFeedback": "GOOD",
+          "hrvFactorPercent": 100,
+          "hrvFactorFeedback": "VERY_GOOD",
+          "hrvWeeklyAverage": 49,
+          "sleepHistoryFactorPercent": 59,
+          "sleepHistoryFactorFeedback": "MODERATE",
+          "validSleep": false,
+          "inputContext": "UPDATE_REALTIME_VARIABLES",
+          "primaryActivityTracker": true,
+          "recoveryTimeChangePhrase": null
+        },
+        {
+          "userProfilePK": 104409518,
+          "calendarDate": "2026-08-09",
+          "timestamp": "2026-08-09T00:29:49.0",
+          "timestampLocal": "2026-08-09T02:29:49.0",
+          "deviceId": 3471323853,
+          "level": "MODERATE",
+          "feedbackLong": "MOD_RT_LOW_SS_UNKNOWN",
+          "feedbackShort": "GOOD_SLEEP_HISTORY",
+          "score": 72,
+          "sleepScore": null,
+          "sleepScoreFactorPercent": 0,
+          "sleepScoreFactorFeedback": "NONE",
+          "recoveryTime": 260,
+          "recoveryTimeFactorPercent": 93,
+          "recoveryTimeFactorFeedback": "GOOD",
+          "acwrFactorPercent": 100,
+          "acwrFactorFeedback": "VERY_GOOD",
+          "acuteLoad": 817,
+          "stressHistoryFactorPercent": 100,
+          "stressHistoryFactorFeedback": "GOOD",
+          "hrvFactorPercent": 100,
+          "hrvFactorFeedback": "VERY_GOOD",
+          "hrvWeeklyAverage": 49,
+          "sleepHistoryFactorPercent": 59,
+          "sleepHistoryFactorFeedback": "MODERATE",
+          "validSleep": false,
+          "inputContext": "UPDATE_REALTIME_VARIABLES",
+          "primaryActivityTracker": true,
+          "recoveryTimeChangePhrase": null
+        },
         {
           "userProfilePK": 104409518,
           "calendarDate": "2026-08-09",
@@ -322775,12 +322837,12 @@
       "endTimeGMT": "2026-08-08 08:03:15",
       "qualifyingDive": false,
       "activityUUID": "808655cd-3e1a-49bf-a547-d8c9c8b3309b",
-      "parent": false,
       "decoDive": false,
       "pr": false,
       "autoCalcCalories": false,
       "favorite": false,
       "purposeful": false,
+      "parent": false,
       "elevationCorrected": false,
       "atpActivity": false,
       "manualActivity": false
