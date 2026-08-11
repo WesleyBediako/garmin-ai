@@ -637,7 +637,7 @@ details.week[open] .sw-arrow { transform: rotate(90deg); }
 
 .day-row {
   display: grid;
-  grid-template-columns: 34px 1fr auto;
+  grid-template-columns: 128px 1fr auto;
   gap: 10px;
   align-items: center;
   padding: 8px 12px;
@@ -647,10 +647,15 @@ details.week[open] .sw-arrow { transform: rotate(90deg); }
   font-size: 0.82rem;
 }
 
+@media (max-width: 640px) {
+  .day-row { grid-template-columns: 1fr; row-gap: 4px; }
+}
+
 .day-row .dd {
   font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--muted);
+  white-space: nowrap;
 }
 
 .day-row .ds { color: var(--text-dim); }

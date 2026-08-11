@@ -145,10 +145,14 @@ function activityTypesOnDate(activities, date) {
 }
 
 const BIKE_PLAN_TYPES = ["RAD", "RAD+EASY"];
+// Session types that a wearable can't verify (lab tests etc.) — no Garmin
+// activity on that day doesn't mean it was skipped, so never call it "missed".
+const UNTRACKED_TYPES = ["TEST"];
 
 function sessionStatus(session, activities, todayStr) {
   const typesToday = activityTypesOnDate(activities, session.date);
   if (session.type === "REST") return "rest";
+  if (UNTRACKED_TYPES.includes(session.type)) return session.date > todayStr ? "upcoming" : "untracked";
   if (session.date > todayStr) return "upcoming";
   if (typesToday.length > 0) {
     const plannedIsBike = BIKE_PLAN_TYPES.includes(session.type);
@@ -166,6 +170,7 @@ const STATUS_BADGE = {
   done: '<span class="badge good">Erledigt</span>',
   "substituted-bike": '<span class="badge low">Ersetzt (Rad statt Lauf)</span>',
   "substituted-run": '<span class="badge low">Ersetzt (Lauf statt Rad)</span>',
+  untracked: '<span class="badge na">Nicht per Garmin erfasst</span>',
   missed: '<span class="badge poor">Verpasst</span>',
   upcoming: '<span class="badge na">Kommt</span>',
   today: '<span class="badge moderate">Heute</span>',
@@ -367,6 +372,10 @@ function computeWeeklyStats(plan, activities) {
 
 function computeInsights(wellness, dates, activities, plan, todayStr) {
   const insights = [];
+  // Only the last 7 days are relevant for "what's happening right now" —
+  // older history shouldn't surface as a current insight.
+  const recentCutoff = addDays(todayStr, -7);
+  const recentDates = dates.filter((d) => d >= recentCutoff && d <= todayStr);
 
   // 1) Training Readiness Trend
   const readinessSeries = dates
@@ -397,12 +406,14 @@ function computeInsights(wellness, dates, activities, plan, todayStr) {
   }
 
   // 2) Effort drift: Easy/Long/Recovery sessions run notably faster than prescribed pace
+  // (only the last 7 days matter here — an old drift from weeks ago isn't actionable today)
   const plannedByDate = {};
   if (plan) plan.sessions.forEach((s) => (plannedByDate[s.date] = s));
 
   const driftHits = [];
   Object.values(activities).forEach((a) => {
     const date = (a.startTimeLocal || "").split(" ")[0];
+    if (date < recentCutoff || date > todayStr) return;
     const planned = plannedByDate[date];
     if (!planned || !["EASY", "LONG", "RECOVERY"].includes(planned.type)) return;
     const actType = ((a.activityType || {}).typeKey || "").toLowerCase();
@@ -416,6 +427,7 @@ function computeInsights(wellness, dates, activities, plan, todayStr) {
     }
   });
   if (driftHits.length > 0) {
+    driftHits.sort((a, b) => a.date.localeCompare(b.date));
     const h = driftHits[driftHits.length - 1];
     insights.push({
       tone: "warn",
@@ -441,23 +453,23 @@ function computeInsights(wellness, dates, activities, plan, todayStr) {
     }
   }
 
-  // 4) Missing sleep/HRV data
-  const missingSleep = dates.filter((d) => !wellness[d].sleep || !wellness[d].sleep.dailySleepDTO || wellness[d].sleep.dailySleepDTO.sleepTimeSeconds == null);
-  if (missingSleep.length === dates.length && dates.length >= 2) {
+  // 4) Missing sleep/HRV data (last 7 days)
+  const missingSleep = recentDates.filter((d) => !wellness[d].sleep || !wellness[d].sleep.dailySleepDTO || wellness[d].sleep.dailySleepDTO.sleepTimeSeconds == null);
+  if (missingSleep.length === recentDates.length && recentDates.length >= 2) {
     insights.push({
       tone: "info",
-      title: "Keine Schlafdaten in diesem Zeitraum",
-      body: `Für die letzten ${dates.length} Tage liegen keine Schlafwerte vor. Falls du die Uhr nachts normalerweise trägst, lohnt sich ein Blick in die Garmin Connect App, ob die Nächte dort erfasst wurden — sonst fehlt ein wichtiger Recovery-Baustein.`,
+      title: "Keine Schlafdaten diese Woche",
+      body: `Für die letzten ${recentDates.length} Tage liegen keine Schlafwerte vor. Falls du die Uhr nachts normalerweise trägst, lohnt sich ein Blick in die Garmin Connect App, ob die Nächte dort erfasst wurden — sonst fehlt ein wichtiger Recovery-Baustein.`,
     });
   }
 
-  // 5) Stress trend
-  const stressSeries = dates.map((d) => wellness[d].stress?.avgStressLevel).filter((v) => v != null);
+  // 5) Stress trend (last 7 days)
+  const stressSeries = recentDates.map((d) => wellness[d].stress?.avgStressLevel).filter((v) => v != null);
   if (stressSeries.length >= 2 && stressSeries[stressSeries.length - 1] > 40 && stressSeries[stressSeries.length - 1] > stressSeries[0]) {
     insights.push({
       tone: "warn",
       title: "Stresslevel steigt an",
-      body: `Durchschnittlicher Stresswert zuletzt bei ${stressSeries[stressSeries.length - 1]} (Anstieg gegenüber ${stressSeries[0]} zu Beginn des Zeitraums). Kombiniert mit den Trainingswerten oben lohnt es sich, auf ausreichend Schlaf und Erholungstage zu achten.`,
+      body: `Durchschnittlicher Stresswert zuletzt bei ${stressSeries[stressSeries.length - 1]} (Anstieg gegenüber ${stressSeries[0]} vor ein paar Tagen). Kombiniert mit den Trainingswerten oben lohnt es sich, auf ausreichend Schlaf und Erholungstage zu achten.`,
     });
   }
 
@@ -910,6 +922,8 @@ function switchPhaseTab(el, phase) {
 }
 window.switchPhaseTab = switchPhaseTab;
 
+const WEEKDAY_NAMES = { MO: "Montag", DI: "Dienstag", MI: "Mittwoch", DO: "Donnerstag", FR: "Freitag", SA: "Samstag", SO: "Sonntag" };
+
 function renderWeekAccordion(weekLabel, sessions, activities, todayStr, adjustments, isCurrent) {
   const sorted = sessions.slice().sort((a, b) => a.date.localeCompare(b.date));
   const first = sorted[0];
@@ -933,9 +947,11 @@ function renderWeekAccordion(weekLabel, sessions, activities, todayStr, adjustme
         if (s.note) html += `<div style="font-size:0.72rem;color:var(--muted);margin-top:2px">${s.note}</div>`;
       }
       const raceClass = s.type === "RACE" ? " race" : "";
-      const todayStyle = s.date === todayStr ? ' style="outline:1px solid var(--aerobic)"' : "";
+      const isToday = s.date === todayStr;
+      const todayStyle = isToday ? ' style="outline:1px solid var(--aerobic)"' : "";
+      const dayLabel = `${WEEKDAY_NAMES[s.day_code] || s.day_code}, ${fmtDate(s.date)}${isToday ? ' <span style="color:var(--aerobic);font-weight:600">· heute</span>' : ""}`;
       return `<div class="day-row"${todayStyle}>
-        <div class="dd">${s.day_code}</div>
+        <div class="dd">${dayLabel}</div>
         <div class="ds${raceClass}">${html}</div>
         <div>${STATUS_BADGE[status]}</div>
       </div>`;
