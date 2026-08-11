@@ -82,14 +82,16 @@ function lineChartSVG(points, color, opts = {}) {
   </svg>`;
 }
 
+const PHASE_COLORS = { p0: "#6B7A94", p1: "#2FBFA6", p2: "#F2B134", p3: "#FF5A45", p4: "#6B7A94" };
+
 function weeklyVolumeChartSVG(weeks) {
   if (weeks.length === 0) return `<p class="empty">Noch keine Wochendaten</p>`;
-  const width = 700, height = 170, padL = 36, padR = 10, padT = 10, padB = 34;
+  const width = 1000, height = 200, padL = 36, padR = 10, padT = 10, padB = 34;
   const innerW = width - padL - padR;
   const innerH = height - padT - padB;
   const maxVal = Math.max(1, ...weeks.map((w) => Math.max(w.actual, w.planned || 0))) * 1.15;
   const groupW = innerW / weeks.length;
-  const barW = Math.min(26, groupW * 0.32);
+  const barW = Math.min(26, groupW * 0.34);
 
   const bars = weeks
     .map((w, i) => {
@@ -98,11 +100,12 @@ function weeklyVolumeChartSVG(weeks) {
       const plannedH = w.planned ? (w.planned / maxVal) * innerH : 0;
       const ay = padT + innerH - actualH;
       const py = padT + innerH - plannedH;
-      const aBar = `<rect class="bar" x="${cx - barW - 2}" y="${ay}" width="${barW}" height="${actualH}" fill="${COLORS.volume}"><title>${w.label}: ${w.actual.toFixed(1)} km ist</title></rect>`;
+      const phaseColor = PHASE_COLORS[w.phase] || COLORS.volumeTarget;
+      const aBar = `<rect class="bar" x="${cx - barW - 1}" y="${ay}" width="${barW}" height="${actualH}" fill="${COLORS.volume}"><title>${w.label}: ${w.actual.toFixed(1)} km ist</title></rect>`;
       const pBar = w.planned
-        ? `<rect class="bar" x="${cx + 2}" y="${py}" width="${barW}" height="${plannedH}" fill="${COLORS.volumeTarget}"><title>${w.label}: ~${w.planned} km geplant</title></rect>`
+        ? `<rect class="bar" x="${cx + 1}" y="${py}" width="${barW}" height="${plannedH}" fill="${phaseColor}" opacity="0.85"><title>${w.label}: ~${w.planned} km geplant</title></rect>`
         : "";
-      const label = `<text class="bar-label" x="${cx}" y="${height - 4}">${w.label}</text>`;
+      const label = `<text class="bar-label" x="${cx}" y="${height - 4}">${w.label.replace("W", "")}</text>`;
       return aBar + pBar + label;
     })
     .join("");
@@ -342,16 +345,21 @@ function computeWeeklyStats(plan, activities) {
     weeks[week].count += 1;
   });
   const weekOrder = plan ? [...new Set(plan.sessions.map((s) => s.week))] : Object.keys(weeks).sort();
-  const series = weekOrder
-    .filter((w) => weeks[w])
-    .map((w) => ({
+  const weekBlock = {};
+  if (plan) plan.sessions.forEach((s) => { if (!(s.week in weekBlock)) weekBlock[s.week] = s.block; });
+
+  const series = weekOrder.map((w) => {
+    const wk = weeks[w] || { km: 0, bikeKm: 0, hours: 0, count: 0 };
+    return {
       label: w,
-      actual: weeks[w].km,
-      bikeKm: weeks[w].bikeKm,
-      hours: weeks[w].hours,
-      count: weeks[w].count,
+      actual: wk.km,
+      bikeKm: wk.bikeKm,
+      hours: wk.hours,
+      count: wk.count,
       planned: weekPlanned[w] || null,
-    }));
+      phase: getPhaseKey(weekBlock[w]),
+    };
+  });
   return series;
 }
 
@@ -543,10 +551,11 @@ function computeCoachTip(wellness, dates, activities, plan, todayStr, activityDa
   }
 
   if (targetSession) {
+    const detailPart = targetSession.detail ? ` — ${targetSession.detail}` : "";
     return {
       forTomorrow: todayHasActivity,
       headline: `${dayWordCap}: ${targetSession.type_label}`,
-      body: `${sessionName} — ${targetSession.detail || ""}. Keine besonderen Auffälligkeiten in den Recovery-Werten, dem Plan folgen.`,
+      body: `${sessionName}${detailPart}. Keine besonderen Auffälligkeiten in den Recovery-Werten, dem Plan folgen.`,
     };
   }
 
@@ -558,12 +567,10 @@ function computeCoachTip(wellness, dates, activities, plan, todayStr, activityDa
 }
 
 function renderCoachTip(tip) {
-  return `<section>
-    <div class="card" style="border-left:4px solid var(--accent)">
-      <h3>Coach-Tipp für ${tip.forTomorrow ? "morgen" : "heute"}</h3>
-      <div class="value" style="font-size:1.15rem">${tip.headline}</div>
-      <p style="color:var(--text-dim);font-size:0.9rem;margin:0">${tip.body}</p>
-    </div>
+  return `<section class="panel" style="border-left:3px solid var(--threshold)">
+    <div class="panel-head"><div class="panel-title">Coach-Tipp für ${tip.forTomorrow ? "morgen" : "heute"}</div></div>
+    <div style="font-family:var(--font-head);font-size:1.15rem;font-weight:600;margin-bottom:8px">${tip.headline}</div>
+    <p style="color:var(--text-dim);font-size:0.9rem;margin:0">${tip.body}</p>
   </section>`;
 }
 
@@ -576,47 +583,114 @@ function renderInsights(insights) {
     </div>`
     )
     .join("");
-  return `<section>
-    <div class="section-head"><h2>Was deine Daten zeigen</h2><span class="hint">automatisch berechnet, keine Ferndiagnose</span></div>
+  return `<section class="panel">
+    <div class="panel-head"><div class="panel-title">Was deine Daten zeigen</div><div class="panel-note">automatisch berechnet, keine Ferndiagnose</div></div>
     ${cards}
   </section>`;
 }
 
 /* ---------- render sections ---------- */
 
-function renderHero(plan, todayStr, dates, activityCount) {
-  const race = plan
-    ? plan.sessions.find((s) => s.type === "RACE" && /COPENHAGEN|KOPENHAGEN/i.test(s.title_and_target))
-    : null;
-  const countdownHtml = race
-    ? (() => {
-        const n = daysUntil(race.date, todayStr);
-        const label = n > 0 ? `${n}` : n === 0 ? "🏁" : `+${Math.abs(n)}`;
-        const sub = n > 0 ? "Tage bis Kopenhagen" : n === 0 ? "Renntag!" : "Tage seit dem Rennen";
-        return `<div class="countdown">
-          <div class="num">${label}</div>
-          <div class="label">${sub}</div>
-          <div class="goal">${race.date} · Ziel ${race.detail || ""}</div>
-        </div>`;
-      })()
-    : "";
+function raceLabel(session) {
+  if (/valencia/i.test(session.title_and_target)) return "Valencia Marathon";
+  if (/kopenhagen|copenhagen/i.test(session.title_and_target)) return "Kopenhagen Halbmarathon";
+  return session.title_and_target;
+}
+
+function renderPageHeader(plan, dates, activityCount) {
+  const races = plan ? plan.sessions.filter((s) => s.type === "RACE").sort((a, b) => a.date.localeCompare(b.date)) : [];
+  const valencia = races.find((r) => /valencia/i.test(r.title_and_target));
+  const kopenhagen = races.find((r) => /kopenhagen|copenhagen/i.test(r.title_and_target));
+  const start = plan && plan.sessions.length ? plan.sessions[0].date : "";
+
+  const metaItems = [];
+  if (start) metaItems.push(`Start <strong>${start}</strong>`);
+  if (kopenhagen) metaItems.push(`Tune-up <strong>Kopenhagen HM · ${kopenhagen.date}</strong>`);
+  if (valencia) metaItems.push(`Renntag <strong>${valencia.date}</strong>`);
+  metaItems.push(`A-Ziel <strong>2:32–2:34</strong>`);
+  metaItems.push(`B-Ziel <strong>2:38–2:41</strong>`);
+
   const rangeLabel = dates.length ? `${dates[0]} bis ${dates[dates.length - 1]} · ${activityCount} Workout(s) synced` : "Noch keine Daten";
-  return `<div class="hero">
-    <div class="hero-inner">
+
+  return `<header class="page-header">
+    <div class="eyebrow">Trainingsblock · 22 Wochen · ${rangeLabel}</div>
+    <h1>Valencia Marathon</h1>
+    <div class="hero-meta">${metaItems.map((m) => `<div>${m}</div>`).join("")}</div>
+  </header>`;
+}
+
+function renderPaceGapGauge() {
+  // From CPET (Longevity Center Nürnberg, 10.08.2026): FatMax 12.0 km/h,
+  // VT1 13.0 km/h, VT2/RCP 16.0 km/h. Target marathon pace 3:36/km = 16.67 km/h.
+  const fatmax = 12.0,
+    vt1 = 13.0,
+    vt2 = 16.0,
+    target = 16.67;
+  const minKmh = 10,
+    maxKmh = 18;
+  const x = (kmh) => 40 + ((kmh - minKmh) / (maxKmh - minKmh)) * 920;
+  const gapSec = Math.round(3600 / vt2 - 3600 / target); // seconds/km target is faster than VT2
+  const gapLabel = gapSec > 0 ? `+0:${String(gapSec).padStart(2, "0")}/km` : `${gapSec}s/km`;
+
+  return `<section class="panel gauge-panel">
+    <div class="hero-top">
       <div>
-        <h1>Dein Training</h1>
-        <p class="subtitle">${rangeLabel}</p>
+        <div class="hero-title">Zielpace vs. gemessene Schwelle</div>
+        <div class="hero-sub">Aus der Spiroergometrie vom 10.08.2026. Die Zielpace liegt oberhalb der gemessenen VT2 — dieser Block ist darauf ausgelegt, genau diese Lücke zu schließen.</div>
       </div>
-      ${countdownHtml}
+      <div class="gap-readout">
+        <div class="num">${gapLabel}</div>
+        <div class="lbl">Ziel schneller als VT2</div>
+      </div>
     </div>
-  </div>`;
+    <svg class="gauge-svg" viewBox="0 0 1000 170" xmlns="http://www.w3.org/2000/svg">
+      <line x1="40" y1="90" x2="960" y2="90" stroke="#2B323D" stroke-width="2"/>
+      <g font-family="monospace" font-size="11" fill="#5C6673">
+        <text x="40" y="120">10</text>
+        <text x="${x(12)}" y="120">12</text>
+        <text x="${x(14)}" y="120">14</text>
+        <text x="${x(16)}" y="120">16</text>
+        <text x="895" y="120">18 km/h</text>
+      </g>
+      <rect x="40" y="78" width="${x(fatmax) - 40}" height="24" fill="#2FBFA6" opacity="0.18"/>
+      <rect x="${x(fatmax)}" y="78" width="${x(vt1) - x(fatmax)}" height="24" fill="#2FBFA6" opacity="0.32"/>
+      <rect x="${x(vt1)}" y="78" width="${x(vt2) - x(vt1)}" height="24" fill="#F2B134" opacity="0.20"/>
+      <rect x="${x(vt2)}" y="78" width="${x(target) - x(vt2)}" height="24" fill="#FF5A45" opacity="0.22"/>
+      <rect x="${x(target)}" y="78" width="${960 - x(target)}" height="24" fill="#FF5A45" opacity="0.40"/>
+
+      <line x1="${x(fatmax)}" y1="68" x2="${x(fatmax)}" y2="112" stroke="#2FBFA6" stroke-width="2"/>
+      <circle cx="${x(fatmax)}" cy="90" r="4" fill="#2FBFA6"/>
+      <text x="${x(fatmax)}" y="55" text-anchor="middle" font-family="monospace" font-size="11.5" fill="#2FBFA6" font-weight="600">FatMax 12,0</text>
+
+      <line x1="${x(vt1)}" y1="68" x2="${x(vt1)}" y2="112" stroke="#8C96A3" stroke-width="2"/>
+      <circle cx="${x(vt1)}" cy="90" r="4" fill="#8C96A3"/>
+      <text x="${x(vt1)}" y="150" text-anchor="middle" font-family="monospace" font-size="11.5" fill="#8C96A3" font-weight="600">VT1 13,0</text>
+
+      <line x1="${x(vt2)}" y1="60" x2="${x(vt2)}" y2="112" stroke="#FF5A45" stroke-width="2.5"/>
+      <circle cx="${x(vt2)}" cy="90" r="5" fill="#FF5A45"/>
+      <text x="${x(vt2)}" y="48" text-anchor="middle" font-family="monospace" font-size="12.5" fill="#FF5A45" font-weight="700">VT2 16,0</text>
+
+      <line x1="${x(target)}" y1="60" x2="${x(target)}" y2="112" stroke="#F2B134" stroke-width="2.5" stroke-dasharray="3,3"/>
+      <circle cx="${x(target)}" cy="90" r="5" fill="#F2B134"/>
+      <text x="${x(target)}" y="150" text-anchor="middle" font-family="monospace" font-size="12.5" fill="#F2B134" font-weight="700">Ziel 16,7</text>
+
+      <path d="M ${x(vt2)} 30 L ${x(vt2)} 22 L ${x(target)} 22 L ${x(target)} 30" fill="none" stroke="#F2B134" stroke-width="1.5"/>
+      <text x="${(x(vt2) + x(target)) / 2}" y="16" text-anchor="middle" font-family="monospace" font-size="11" fill="#F2B134">zu schließende Lücke</text>
+    </svg>
+    <div class="gauge-legend">
+      <div class="leg-item"><span class="leg-dot" style="background:#2FBFA6"></span>Z1–Z2 Grundlage / FatMax</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#F2B134;opacity:0.7"></span>Z3 Marathonpace-Blöcke</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#FF5A45;opacity:0.7"></span>Z4–Z5 Schwelle / Intervalle</div>
+      <div class="leg-item"><span class="leg-dot" style="border:1.5px dashed #F2B134;background:transparent"></span>Zielpace (3:36/km)</div>
+    </div>
+  </section>`;
 }
 
 function renderWeekStats(weeklyStats, currentWeekLabel) {
   const cur = weeklyStats.find((w) => w.label === currentWeekLabel) || { actual: 0, hours: 0, count: 0, planned: null };
   const pct = cur.planned ? Math.round((cur.actual / cur.planned) * 100) : null;
-  return `<section>
-    <div class="section-head"><h2>Diese Woche (${currentWeekLabel || "—"})</h2></div>
+  return `<section class="panel">
+    <div class="panel-head"><div class="panel-title">Diese Woche (${currentWeekLabel || "—"})</div></div>
     <div class="grid">
       ${statCard("Volumen", `${cur.actual.toFixed(1)}<span class="unit inline"> / ${cur.planned ? "~" + cur.planned : "?"} km</span>`)}
       ${statCard("Stunden", fmtHM(cur.hours))}
@@ -627,144 +701,23 @@ function renderWeekStats(weeklyStats, currentWeekLabel) {
 }
 
 function renderWeeklyVolumeChart(weeklyStats) {
-  return `<section>
-    <div class="section-head"><h2>Wochenvolumen im Verlauf</h2><span class="hint">Ist vs. Plan</span></div>
-    <div class="table-card">${weeklyVolumeChartSVG(weeklyStats)}</div>
-  </section>`;
-}
-
-const PACE_NAMES = /@\s*(HMP|Schwelle|mod-Tempo|Tempo)\b/i;
-
-function extractPaceLabel(session) {
-  const combined = `${session.title_and_target || ""} ${session.detail || ""}`;
-  const range = parsePaceRangeSecPerKm(combined);
-  if (range) return `${fmtPace(range.fast).replace("/km", "")}–${fmtPace(range.slow)}`;
-  // Lenient fallback: a time-range without an explicit /km suffix nearby
-  // (some plan rows lost the unit during PDF extraction, but in this
-  // context an H:MM–H:MM range is always a per-km pace).
-  const lenient = combined.match(/(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})/);
-  if (lenient) {
-    const fast = parseInt(lenient[1], 10) * 60 + parseInt(lenient[2], 10);
-    const slow = parseInt(lenient[3], 10) * 60 + parseInt(lenient[4], 10);
-    return `${fmtPace(fast).replace("/km", "")}–${fmtPace(slow)}`;
-  }
-  const single = combined.match(/(\d{1,2}:\d{2})\s*\/?\s*km/);
-  if (single) return `${single[1]}/km`;
-  const named = combined.match(PACE_NAMES);
-  if (named) return named[1];
-  return session.type === "REST" ? "—" : "siehe Details";
-}
-
-function extractDistanceLabel(session) {
-  // Only trust simple, unambiguous cases — plain "16 km Easy" style.
-  const m = (session.detail || "").match(/^(\d+(?:[.,]\d+)?)\s*km\b/);
-  if (m) return `${m[1]} km`;
-  if (session.type === "REST") return "—";
-  return "siehe Details";
-}
-
-function renderDetailSegments(session) {
-  const parts = [];
-  if (session.title_and_target) parts.push(`<p style="margin:0 0 8px;font-size:0.88rem"><strong>Ziel:</strong> ${session.title_and_target}</p>`);
-  if (session.detail) {
-    const segments = session.detail.split("·").map((s) => s.trim()).filter(Boolean);
-    parts.push(
-      `<ul style="margin:0 0 8px;padding-left:18px;font-size:0.88rem;line-height:1.8">` +
-        segments
-          .map((seg) => {
-            const restMatch = seg.match(/r\s?(\d+)\s?(min|s)\b/i);
-            let html = seg;
-            if (restMatch) {
-              html = seg.replace(restMatch[0], "").trim() + ` <span class="badge na">Pause ${restMatch[1]}${restMatch[2]}</span>`;
-            }
-            return `<li>${html}</li>`;
-          })
-          .join("") +
-        `</ul>`
-    );
-  }
-  if (session.note) parts.push(`<p style="margin:0;font-size:0.85rem;color:var(--text-dim)"><strong>Coach-Notiz:</strong> ${session.note}</p>`);
-  return parts.join("") || '<p class="empty">Keine weiteren Details</p>';
-}
-
-function togglePlanRow(el) {
-  const detailRow = el.nextElementSibling;
-  const isOpen = detailRow.style.display === "table-row";
-  detailRow.style.display = isOpen ? "none" : "table-row";
-  const chevron = el.querySelector(".chevron");
-  if (chevron) chevron.textContent = isOpen ? "▸" : "▾";
-}
-window.togglePlanRow = togglePlanRow;
-
-function renderTrainingPlan(plan, activities, todayStr, adjustments) {
-  if (!plan || !plan.sessions || plan.sessions.length === 0) {
-    return `<section><div class="section-head"><h2>Trainingsplan</h2></div><div class="table-card"><p class="empty">Kein Trainingsplan geladen</p></div></section>`;
-  }
-  let currentWeek = plan.sessions.find((s) => s.date === todayStr)?.week;
-  if (!currentWeek) {
-    const future = plan.sessions.filter((s) => s.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date));
-    currentWeek = future.length ? future[0].week : plan.sessions[plan.sessions.length - 1].week;
-  }
-  const weekSessions = plan.sessions.filter((s) => s.week === currentWeek).sort((a, b) => a.date.localeCompare(b.date));
-
-  const rows = weekSessions
-    .map((s) => {
-      const status = sessionStatus(s, activities, todayStr);
-      const adj = adjustments[s.date];
-      const swapped = !!s._original;
-      const rowClass = s.date === todayStr ? "is-today" : "";
-
-      let typCell;
-      if (swapped) {
-        const badgeText = s._kind === "override" ? "Manuell angepasst" : "Getauscht";
-        typCell = `<span style="text-decoration:line-through;color:var(--muted)">${s._original.type_label}</span><br><strong style="color:var(--accent)">${s.type_label}</strong> <span class="badge na">${badgeText}</span>`;
-      } else if (adj) {
-        typCell = `<span style="text-decoration:line-through;color:var(--muted)">${s.type_label}</span><br><strong style="color:var(--warn)">Easy Run</strong> <span class="badge warn">Angepasst</span>`;
-      } else {
-        typCell = s.type_label;
-      }
-      const paceCell = adj ? "locker" : extractPaceLabel(s);
-      const distCell = adj ? "~gleich" : extractDistanceLabel(s);
-
-      const row = `<tr class="${rowClass}" style="cursor:pointer" onclick="togglePlanRow(this)">
-        <td><span class="chevron" style="display:inline-block;width:14px;color:var(--muted)">▸</span>${s.date} (${s.day_code})</td>
-        <td>${typCell}</td>
-        <td>${paceCell}</td>
-        <td>${distCell}</td>
-        <td>${STATUS_BADGE[status]}</td>
-      </tr>`;
-
-      const swapNote = swapped ? `<p style="margin:0 0 8px;font-size:0.85rem;color:var(--accent)">↳ ${s._swapNote}</p>` : "";
-      const adjNote = adj ? `<p style="margin:0 0 8px;font-size:0.85rem;color:var(--warn)">↳ ${adj.reason}</p>` : "";
-      const detailRow = `<tr class="${rowClass}" style="display:none"><td colspan="5" style="background:var(--bg-soft)">
-          <div style="padding:14px 4px">${swapNote}${adjNote}${renderDetailSegments(s)}</div>
-        </td></tr>`;
-
-      return row + detailRow;
-    })
-    .join("");
-
-  const offWeekAdj = Object.values(adjustments).find((a) => a.original.week !== currentWeek);
-  const offWeekNote = offWeekAdj
-    ? `<p style="color:var(--warn);font-size:0.85rem;margin:10px 0 0">Hinweis: für ${offWeekAdj.original.date} (${offWeekAdj.original.week}) ist ebenfalls eine Anpassung vorgeschlagen — ${offWeekAdj.reason}</p>`
-    : "";
-
-  return `<section>
-    <div class="section-head"><h2>Trainingsplan — ${currentWeek}</h2><span class="hint">${weekSessions[0]?.week_volume || ""} · Zeile klicken für Details</span></div>
-    <div class="table-card">
-      <table>
-        <thead><tr><th>Datum</th><th>Typ</th><th>Pace</th><th>Distanz</th><th>Status</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-      ${offWeekNote}
+  return `<section class="panel">
+    <div class="panel-head"><div class="panel-title">Wochenumfang · 22 Wochen</div><div class="panel-note">Ist vs. Plan</div></div>
+    ${weeklyVolumeChartSVG(weeklyStats)}
+    <div class="vol-phase-legend">
+      <div class="leg-item"><span class="leg-dot" style="background:#6B7A94"></span>Vorbereitung</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#2FBFA6"></span>Phase 1 · Basis</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#F2B134"></span>Phase 2 · Kopenhagen</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#FF5A45"></span>Phase 3 · Aufbau</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#6B7A94"></span>Phase 4 · Taper</div>
     </div>
   </section>`;
 }
 
 function renderRecoveryCharts(rhrPoints, readinessPoints, stressPoints, batteryPoints, stepsPoints) {
   const latest = (pts) => pts[pts.length - 1]?.value;
-  return `<section>
-    <div class="section-head"><h2>Recovery & Belastung</h2></div>
+  return `<section class="panel">
+    <div class="panel-head"><div class="panel-title">Recovery & Belastung</div></div>
     <div class="grid charts">
       ${statCard("Ruhepuls", latest(rhrPoints) != null ? `${latest(rhrPoints)}<span class="unit inline"> bpm</span>` : '<span class="empty">n/a</span>', lineChartSVG(rhrPoints, COLORS.rhr))}
       ${statCard("Training Readiness", readinessBadge(latest(readinessPoints)), lineChartSVG(readinessPoints, COLORS.readiness, { minZero: true }))}
@@ -829,7 +782,7 @@ window.toggleWorkout = toggleWorkout;
 function renderWorkouts(activities) {
   const list = Object.values(activities).sort((a, b) => (b.startTimeLocal || "").localeCompare(a.startTimeLocal || ""));
   if (list.length === 0) {
-    return `<section><div class="section-head"><h2>Workouts</h2></div><div class="table-card"><p class="empty">Noch keine Workouts synced</p></div></section>`;
+    return `<section class="panel"><div class="panel-head"><div class="panel-title">Workouts</div></div><p class="empty">Noch keine Workouts synced</p></section>`;
   }
   const rows = list
     .map((a) => {
@@ -846,8 +799,8 @@ function renderWorkouts(activities) {
         <tr style="display:none"><td colspan="6" style="padding:0;background:var(--bg-soft)">${workoutDetailGrid(a)}</td></tr>`;
     })
     .join("");
-  return `<section>
-    <div class="section-head"><h2>Letzte Workouts</h2><span class="hint">Zeile klicken für Details</span></div>
+  return `<section class="panel">
+    <div class="panel-head"><div class="panel-title">Letzte Workouts</div><div class="panel-note">Zeile klicken für Details</div></div>
     <div class="table-card">
       <table>
         <thead><tr><th>Datum</th><th>Name</th><th>Typ</th><th>Distanz</th><th>Dauer</th><th>Ø HF</th></tr></thead>
@@ -859,6 +812,188 @@ function renderWorkouts(activities) {
 
 function renderDisclaimer() {
   return `<p class="disclaimer">Coach-Tipp und Hinweise werden automatisch aus deinen Garmin-Zahlen und deinem Trainingsplan berechnet (einfache Regeln, keine KI-Ferndiagnose). Bei anhaltenden Beschwerden oder Unsicherheit zur Trainingssteuerung sprich mit deinem Trainer oder Arzt.</p>`;
+}
+
+/* ---------- Zone reference (from CPET, Longevity Center Nürnberg 10.08.2026) ---------- */
+
+function renderZones() {
+  const zones = [
+    { name: "Z1 Regeneration", pace: "&gt; 5:13/km", kmh: "&lt; 11,5 km/h", use: "sehr locker", target: false },
+    { name: "Z2 Grundlage / FatMax", pace: "5:13–4:48/km", kmh: "11,5–12,5 km/h", use: "Fettstoffwechsel", target: false },
+    { name: "Z3 Marathon / Steady", pace: "4:48–4:17/km", kmh: "12,5–14,0 km/h", use: "Marathonblöcke", target: false },
+    { name: "Z4 Tempo / Schwelle", pace: "4:17–3:45/km", kmh: "14,0–16,0 km/h", use: "kontrolliert hart", target: false },
+    { name: "Z5 Hochintensiv", pace: "&lt; 3:45/km", kmh: "&gt; 16,0 km/h", use: "kurze Intervalle", target: false },
+    { name: "Zielpace Marathon", pace: "3:36/km", kmh: "16,7 km/h", use: "A-Ziel 2:32–2:34", target: true },
+  ];
+  const cards = zones
+    .map(
+      (z) => `<div class="zone-card${z.target ? " target" : ""}">
+        <div class="zone-name">${z.name}</div>
+        <div class="zone-pace">${z.pace}</div>
+        <div class="zone-kmh">${z.kmh}</div>
+        <div class="zone-use">${z.use}</div>
+      </div>`
+    )
+    .join("");
+  return `<section class="panel">
+    <div class="panel-head"><div class="panel-title">Pace-Zonen (aus CPET)</div><div class="panel-note">Laufband-Spiroergometrie, 10.08.2026</div></div>
+    <div class="zones">${cards}</div>
+    <p class="disclaimer">VO₂max 87,1 ml/kg/min · VT1 13,0 km/h · VT2/RCP 16,0 km/h · Laktatbasiert liegt die erste Schwelle eher bei 11,5–12,5 km/h (FatMax) — Grundlagenläufe bewusst darunter halten, nicht bis VT1 ausreizen.</p>
+  </section>`;
+}
+
+/* ---------- Fueling ---------- */
+
+function renderFueling() {
+  return `<section class="panel">
+    <div class="panel-head"><div class="panel-title">Verpflegungsstrategie</div></div>
+    <div class="fuel-grid">
+      <div class="fuel-block">
+        <div class="fuel-stat">75–90 g/h</div>
+        <div class="fuel-lbl">Kohlenhydrate im Wettkampf, z. B. 25–30 g alle 20 Minuten</div>
+      </div>
+      <div class="fuel-block">
+        <div class="fuel-stat">590–890 g/Tag</div>
+        <div class="fuel-lbl">Carb-Loading letzte 36–48h (8–12 g/kg bei ~74 kg, oberes Ende nur bei guter Verträglichkeit)</div>
+      </div>
+    </div>
+    <div class="fuel-block">
+      <table class="fuel-table">
+        <thead><tr><th>Einheit</th><th>Zufuhr währenddessen</th><th>Ziel</th></tr></thead>
+        <tbody>
+          <tr><td>locker &lt; 75 min</td><td>meist nicht nötig</td><td>Fettstoffwechsel</td></tr>
+          <tr><td>75–120 min locker</td><td>20–40 g/h</td><td>stabile Energie</td></tr>
+          <tr><td>langer Lauf 2–2,5h</td><td>40–70 g/h</td><td>Ermüdung begrenzen</td></tr>
+          <tr><td>langer Lauf + Tempo</td><td>60–90 g/h</td><td>Race-Fueling</td></tr>
+          <tr><td>Marathon-Simulation</td><td>75–90 g/h</td><td>Wettkampfstrategie</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="disclaimer" style="margin-top:14px">Fueling-Strategie ab Phase 3 aktiv in den langen Läufen testen — nicht erst am Renntag. Quelle: CPET-Befund Longevity Center Nürnberg, 10.08.2026.</p>
+  </section>`;
+}
+
+/* ---------- Full training plan: phase tabs + week accordion ---------- */
+
+const PHASE_TITLES = {
+  p0: "Vorbereitung — Berlin 10K",
+  p1: "Phase 1 — Basis",
+  p2: "Phase 2 — Kopenhagen",
+  p3: "Phase 3 — Aufbau",
+  p4: "Phase 4 — Taper",
+};
+
+const PHASE_INTROS = {
+  p0: "Ursprünglicher Aufbau vor der Leistungsdiagnostik — Berlin City Night 10K als erster Formcheck.",
+  p1: "Umfang aufbauen, Grundlagentempo sauber in Z2 verankern, erste Schwellenreize setzen.",
+  p2: "Frische aufbauen, Kopenhagen als schnellen Tune-up nutzen (nicht All-out) und Renn-Feedback für die Marathonpace-Kalibrierung sammeln.",
+  p3: "Peak-Umfang, marathonspezifische Ökonomie, lange Ermüdungsresistenz, Fueling-Praxis (75–90 g KH/h).",
+  p4: "Umfang runter, Frische rauf, Renn-Schärfe halten.",
+};
+
+function getPhaseKey(block) {
+  if (!block) return "p0";
+  if (block.startsWith("PHASE 1")) return "p1";
+  if (block.startsWith("PHASE 2")) return "p2";
+  if (block.startsWith("PHASE 3")) return "p3";
+  if (block.startsWith("PHASE 4")) return "p4";
+  return "p0";
+}
+
+function switchPhaseTab(el, phase) {
+  const tabsBar = el.parentElement;
+  tabsBar.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+  el.classList.add("active");
+  const section = tabsBar.closest("section");
+  section.querySelectorAll(".phase-panel").forEach((p) => p.classList.remove("active"));
+  section.querySelector(`#${phase}-panel`).classList.add("active");
+}
+window.switchPhaseTab = switchPhaseTab;
+
+function renderWeekAccordion(weekLabel, sessions, activities, todayStr, adjustments, isCurrent) {
+  const sorted = sessions.slice().sort((a, b) => a.date.localeCompare(b.date));
+  const first = sorted[0];
+  const last = sorted[sorted.length - 1];
+  const dateRange = `${fmtDate(first.date)}–${fmtDate(last.date)}`;
+  const hasRace = sorted.some((s) => s.type === "RACE");
+  const focus = (first.block || "").split("·").pop().trim();
+
+  const rows = sorted
+    .map((s) => {
+      const status = sessionStatus(s, activities, todayStr);
+      const mainText = s.title_and_target + (s.detail ? ` — ${s.detail}` : "");
+      let html;
+      if (s._original) {
+        const badgeText = s._kind === "override" ? "Manuell angepasst" : "Getauscht";
+        html = `<div><span style="text-decoration:line-through;color:var(--muted)">${s._original.type_label}: ${s._original.title_and_target}</span></div>
+          <div><strong style="color:var(--aerobic)">${mainText}</strong> <span class="badge na">${badgeText}</span></div>`;
+        if (s._swapNote) html += `<div style="font-size:0.72rem;color:var(--warn);margin-top:2px">↳ ${s._swapNote}</div>`;
+      } else {
+        html = mainText;
+        if (s.note) html += `<div style="font-size:0.72rem;color:var(--muted);margin-top:2px">${s.note}</div>`;
+      }
+      const raceClass = s.type === "RACE" ? " race" : "";
+      const todayStyle = s.date === todayStr ? ' style="outline:1px solid var(--aerobic)"' : "";
+      return `<div class="day-row"${todayStyle}>
+        <div class="dd">${s.day_code}</div>
+        <div class="ds${raceClass}">${html}</div>
+        <div>${STATUS_BADGE[status]}</div>
+      </div>`;
+    })
+    .join("");
+
+  return `<details class="week${hasRace ? " race" : ""}${isCurrent ? " current" : ""}"${isCurrent ? " open" : ""}>
+    <summary>
+      <span class="sw-week">${weekLabel}</span>
+      <span class="sw-dates">${dateRange}</span>
+      <span class="sw-vol">${first.week_volume || ""}</span>
+      <span class="sw-focus">${focus}</span>
+      <span class="sw-arrow">▸</span>
+    </summary>
+    <div class="week-body">${rows}</div>
+  </details>`;
+}
+
+function renderTrainingPlanFull(plan, activities, todayStr, adjustments) {
+  if (!plan || !plan.sessions || plan.sessions.length === 0) {
+    return `<section class="panel"><div class="panel-head"><div class="panel-title">Trainingsplan</div></div><p class="empty">Kein Trainingsplan geladen</p></section>`;
+  }
+
+  const weekMap = {};
+  plan.sessions.forEach((s) => {
+    if (!weekMap[s.week]) weekMap[s.week] = [];
+    weekMap[s.week].push(s);
+  });
+  const weekLabels = Object.keys(weekMap).sort();
+
+  const currentWeek =
+    plan.sessions.find((s) => s.date === todayStr)?.week ||
+    plan.sessions.filter((s) => s.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date))[0]?.week ||
+    weekLabels[weekLabels.length - 1];
+  const currentPhase = getPhaseKey(weekMap[currentWeek]?.[0]?.block);
+
+  const phaseOrder = ["p0", "p1", "p2", "p3", "p4"].filter((p) => weekLabels.some((w) => getPhaseKey(weekMap[w][0].block) === p));
+
+  const tabsHtml = phaseOrder
+    .map((p) => `<button class="tab-btn${p === currentPhase ? " active" : ""}" onclick="switchPhaseTab(this,'${p}')">${PHASE_TITLES[p]}</button>`)
+    .join("");
+
+  const panelsHtml = phaseOrder
+    .map((p) => {
+      const weeksInPhase = weekLabels.filter((w) => getPhaseKey(weekMap[w][0].block) === p);
+      const weeksHtml = weeksInPhase.map((w) => renderWeekAccordion(w, weekMap[w], activities, todayStr, adjustments, w === currentWeek)).join("");
+      return `<div class="phase-panel${p === currentPhase ? " active" : ""}" id="${p}-panel">
+        <div class="phase-intro">${PHASE_INTROS[p]}</div>
+        <div class="week-list">${weeksHtml}</div>
+      </div>`;
+    })
+    .join("");
+
+  return `<section class="panel">
+    <div class="panel-head"><div class="panel-title">Wochenplan im Detail</div><div class="panel-note">Klick auf eine Woche für den Tagesplan</div></div>
+    <div class="tabs">${tabsHtml}</div>
+    ${panelsHtml}
+  </section>`;
 }
 
 /* ---------- main ---------- */
@@ -939,17 +1074,27 @@ async function main() {
   const adjustments = computeUpcomingAdjustments(wellness, dates, activities, plan, todayStr);
 
   app.innerHTML =
-    renderHero(plan, todayStr, dates, Object.keys(activities).length) +
+    renderPageHeader(plan, dates, Object.keys(activities).length) +
     `<div class="wrap">` +
+    renderPaceGapGauge() +
     renderCoachTip(coachTip) +
     renderWeekStats(weeklyStats, currentWeekLabel) +
     renderInsights(insights) +
-    (plan ? renderTrainingPlan(plan, activities, todayStr, adjustments) : "") +
     renderWeeklyVolumeChart(weeklyStats) +
+    (plan ? renderTrainingPlanFull(plan, activities, todayStr, adjustments) : "") +
     renderRecoveryCharts(rhrPoints, readinessPoints, stressPoints, batteryPoints, stepsPoints) +
     renderWorkouts(activities) +
+    renderZones() +
+    renderFueling() +
     renderDisclaimer() +
+    renderFooter() +
     `</div>`;
+}
+
+function renderFooter() {
+  return `<footer style="margin-top:32px;font-size:0.78rem;color:var(--muted);border-top:1px solid var(--border);padding-top:20px">
+    Basierend auf CPET-Befund vom 10.08.2026 (Longevity Center Nürnberg) · VO₂max 87,1 ml/kg/min · VT2/RCP 16,0 km/h · A-Ziel 2:32–2:34 setzt eine Schwellenverschiebung über den Block voraus — Kopenhagen dient als Realitäts-Check.
+  </footer>`;
 }
 
 main();
