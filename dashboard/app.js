@@ -966,7 +966,7 @@ const REST_GUIDANCE = [
 
 function inferRestGuidance(session) {
   const text = `${session.title_and_target || ""} ${session.detail || ""}`;
-  if (/locker\s*$|Trab\b|r\d+\s*(min|s)\b/i.test(text)) return null; // already states its own rest
+  if (/r\d+\s*(min|s|km)\b|\blocker\b.*\bCD\b|Trab\b/i.test(text)) return null; // already states its own rest
   const match = REST_GUIDANCE.find((r) => r.pattern.test(text));
   return match ? match.rest : null;
 }
