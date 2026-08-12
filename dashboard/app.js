@@ -263,7 +263,7 @@ function getWeekPhase(block) {
   return "normal";
 }
 
-const HARD_TYPES = ["TRACK", "SCHWELLE", "HMPACE", "FARTLEK"];
+const HARD_TYPES = ["TRACK", "SCHWELLE", "HMPACE", "FARTLEK", "MPACE"];
 
 /* Small, conservative adjustments to the *upcoming* plan — only the next
    hard/quality session gets touched, and only if the signal is strong enough
@@ -520,7 +520,7 @@ function computeCoachTip(wellness, dates, activities, plan, todayStr, activityDa
   }
 
   const targetSession = plan ? plan.sessions.find((s) => s.date === targetDate) : null;
-  const hardTypes = ["TRACK", "SCHWELLE", "HMPACE", "FARTLEK"];
+  const hardTypes = ["TRACK", "SCHWELLE", "HMPACE", "FARTLEK", "MPACE"];
   const isHardDay = targetSession && hardTypes.includes(targetSession.type);
   const isEasyDay = targetSession && ["EASY", "LONG", "RECOVERY", "RAD", "RAD+EASY"].includes(targetSession.type);
   const isRestDay = targetSession && targetSession.type === "REST";
