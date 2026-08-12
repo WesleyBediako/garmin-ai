@@ -750,8 +750,10 @@ function detailStat(label, value) {
 }
 
 function workoutDetailGrid(a) {
+  const pauseInActivity = a.elapsedDuration != null && a.duration != null ? Math.round(a.elapsedDuration - a.duration) : null;
   const items = [
     detailStat("Kalorien", a.calories ? `${Math.round(a.calories)} kcal` : null),
+    detailStat("Pause (Stopps während des Laufs)", pauseInActivity && pauseInActivity >= 15 ? fmtSecToMin(pauseInActivity) : null),
     detailStat("Höhenmeter", a.elevationGain != null ? `+${Math.round(a.elevationGain)}m / -${Math.round(a.elevationLoss || 0)}m` : null),
     detailStat("Max HF", a.maxHR ? `${Math.round(a.maxHR)} bpm` : null),
     detailStat("Ø Kadenz", a.averageRunningCadenceInStepsPerMinute ? `${Math.round(a.averageRunningCadenceInStepsPerMinute)} spm` : null),
@@ -779,7 +781,35 @@ function workoutDetailGrid(a) {
       </div>`
     : "";
 
-  return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px 18px;padding:14px 4px">${items.join("")}</div>${hrZoneHtml}`;
+  const lapHtml = renderLapStructure(a.lap_structure);
+
+  return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px 18px;padding:14px 4px">${items.join("")}</div>${hrZoneHtml}${lapHtml}`;
+}
+
+const LAP_KIND_LABEL = { warmup: "Aufwärmen", cooldown: "Cooldown" };
+
+function renderLapStructure(laps) {
+  if (!laps || !laps.length) return "";
+  const rows = laps
+    .map((lap) => {
+      const mins = Math.floor(lap.duration_s / 60);
+      const secs = lap.duration_s % 60;
+      const durStr = `${mins}:${String(secs).padStart(2, "0")}`;
+      const paceStr = lap.pace_sec_per_km ? ` @ ${fmtPace(lap.pace_sec_per_km)}` : "";
+      const hrStr = lap.avg_hr ? ` · Ø${Math.round(lap.avg_hr)} bpm` : "";
+      const isRest = lap.kind === "rest";
+      const label = LAP_KIND_LABEL[lap.kind] || (isRest ? `Pause ${lap.rest_index}` : `Arbeit ${lap.work_index}`);
+      const color = isRest ? "var(--target)" : lap.kind === "work" ? "var(--aerobic)" : "var(--muted)";
+      return `<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--border);font-size:0.82rem">
+        <span style="color:${color};font-weight:${isRest || lap.kind === "work" ? 600 : 400}">${label}</span>
+        <span style="color:var(--text-dim)">${durStr} min${paceStr}${hrStr}</span>
+      </div>`;
+    })
+    .join("");
+  return `<div style="margin-top:14px">
+    <div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:6px">Intervall-Struktur (tatsächlich gelaufen)</div>
+    ${rows}
+  </div>`;
 }
 
 function toggleWorkout(el) {
@@ -924,6 +954,23 @@ window.switchPhaseTab = switchPhaseTab;
 
 const WEEKDAY_NAMES = { MO: "Montag", DI: "Dienstag", MI: "Mittwoch", DO: "Donnerstag", FR: "Freitag", SA: "Samstag", SO: "Sonntag" };
 
+// Rest-between-reps reference values from the CPET report's "Exemplarische
+// Einheiten" table (Longevity Center Nürnberg, 10.08.2026) — the plan's own
+// day-by-day text usually names the workout but doesn't repeat the rest
+// spec, so we surface it here as a guideline.
+const REST_GUIDANCE = [
+  { pattern: /cruise-intervalle/i, rest: "3 min locker" },
+  { pattern: /schwellenintervalle/i, rest: "2–3 min Trab" },
+  { pattern: /marathonpace-block|marathonblöcke|marathonblock/i, rest: "~1 km locker" },
+];
+
+function inferRestGuidance(session) {
+  const text = `${session.title_and_target || ""} ${session.detail || ""}`;
+  if (/locker\s*$|Trab\b|r\d+\s*(min|s)\b/i.test(text)) return null; // already states its own rest
+  const match = REST_GUIDANCE.find((r) => r.pattern.test(text));
+  return match ? match.rest : null;
+}
+
 function renderWeekAccordion(weekLabel, sessions, activities, todayStr, adjustments, isCurrent) {
   const sorted = sessions.slice().sort((a, b) => a.date.localeCompare(b.date));
   const first = sorted[0];
@@ -945,6 +992,10 @@ function renderWeekAccordion(weekLabel, sessions, activities, todayStr, adjustme
       } else {
         html = mainText;
         if (s.note) html += `<div style="font-size:0.72rem;color:var(--muted);margin-top:2px">${s.note}</div>`;
+      }
+      const restGuidance = inferRestGuidance(s);
+      if (restGuidance) {
+        html += `<div style="font-size:0.72rem;color:var(--target);margin-top:2px">↳ Pause zwischen den Wiederholungen: ${restGuidance} <span style="color:var(--muted)">(Richtwert aus deiner Leistungsdiagnostik)</span></div>`;
       }
       const raceClass = s.type === "RACE" ? " race" : "";
       const isToday = s.date === todayStr;

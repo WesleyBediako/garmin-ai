@@ -52,6 +52,58 @@ def sec_to_hm(seconds):
     return f"{h}h {m}m"
 
 
+def classify_laps(laps):
+    """Guesses which laps of a multi-lap activity were work vs. rest, purely
+    from pace — Garmin's own lapDTOs don't reliably tag this for manually- or
+    auto-lapped runs (only for watch-programmed interval workouts)."""
+    if not laps or len(laps) < 3:
+        return None
+
+    n = len(laps)
+    middle = laps[1:-1] if n > 2 else laps
+    middle_speeds = sorted((l.get("averageSpeed") or 0 for l in middle), reverse=True)
+    if not middle_speeds:
+        return None
+    fast_ref = middle_speeds[len(middle_speeds) // 2]
+    if fast_ref <= 0:
+        return None
+
+    result = []
+    work_i = 0
+    rest_i = 0
+    for i, lap in enumerate(laps):
+        speed = lap.get("averageSpeed") or 0
+        dur = lap.get("duration") or 0
+        dist = lap.get("distance") or 0
+        pace = (dur / (dist / 1000)) if dist > 0 else None
+        entry = {
+            "index": i + 1,
+            "duration_s": round(dur),
+            "distance_m": round(dist),
+            "pace_sec_per_km": round(pace) if pace else None,
+            "avg_hr": lap.get("averageHR"),
+        }
+        if i == 0 and speed < 0.85 * fast_ref:
+            entry["kind"] = "warmup"
+        elif i == n - 1 and speed < 0.85 * fast_ref:
+            entry["kind"] = "cooldown"
+        elif speed < 0.7 * fast_ref:
+            rest_i += 1
+            entry["kind"] = "rest"
+            entry["rest_index"] = rest_i
+        else:
+            work_i += 1
+            entry["kind"] = "work"
+            entry["work_index"] = work_i
+        result.append(entry)
+
+    has_work = any(e["kind"] == "work" for e in result)
+    has_rest = any(e["kind"] == "rest" for e in result)
+    if not (has_work and has_rest):
+        return None
+    return result
+
+
 def load_data_json():
     if DATA_JSON.exists():
         return json.loads(DATA_JSON.read_text())
@@ -163,6 +215,27 @@ def write_activity_note(a):
     if training_effect:
         lines.append(f"- Aerobic training effect: {training_effect}")
 
+    lap_structure = a.get("lap_structure")
+    if lap_structure:
+        lines.append("")
+        lines.append("## Intervall-Struktur")
+        for lap in lap_structure:
+            mins, secs = divmod(lap["duration_s"], 60)
+            dur_str = f"{mins}:{secs:02d}"
+            pace = lap.get("pace_sec_per_km")
+            pace_str = f" @ {pace // 60}:{pace % 60:02d}/km" if pace else ""
+            hr_str = f" Ø{lap['avg_hr']:.0f}bpm" if lap.get("avg_hr") else ""
+            kind = lap["kind"]
+            if kind == "warmup":
+                label = "Aufwärmen"
+            elif kind == "cooldown":
+                label = "Cooldown"
+            elif kind == "work":
+                label = f"Arbeit {lap['work_index']}"
+            else:
+                label = f"Pause {lap['rest_index']}"
+            lines.append(f"- {label}: {dur_str} min{pace_str}{hr_str}")
+
     activity_id = a.get("activityId", "unknown")
     safe_name = "".join(c if c.isalnum() or c in "-_" else "-" for c in name)[:40]
     filename = f"{date_part}-{safe_name}-{activity_id}.md"
@@ -212,6 +285,12 @@ def main():
     activities = safe_call(client.get_activities_by_date, start_date, end_date) or []
     for a in activities:
         activity_id = str(a.get("activityId"))
+        if (a.get("lapCount") or 0) > 2:
+            splits = safe_call(client.get_activity_splits, activity_id)
+            laps = (splits or {}).get("lapDTOs") or []
+            lap_structure = classify_laps(laps)
+            if lap_structure:
+                a["lap_structure"] = lap_structure
         data["activities"][activity_id] = a
         write_activity_note(a)
         print(f"  wrote activity note for '{a.get('activityName', activity_id)}'")
