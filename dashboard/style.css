@@ -637,7 +637,7 @@ details.week[open] .sw-arrow { transform: rotate(90deg); }
 
 .day-row {
   display: grid;
-  grid-template-columns: 128px 1fr auto;
+  grid-template-columns: 150px 1fr auto;
   gap: 10px;
   align-items: center;
   padding: 8px 12px;
@@ -655,7 +655,8 @@ details.week[open] .sw-arrow { transform: rotate(90deg); }
   font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--muted);
-  white-space: nowrap;
+  white-space: normal;
+  line-height: 1.4;
 }
 
 .day-row .ds { color: var(--text-dim); }

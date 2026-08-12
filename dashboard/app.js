@@ -971,6 +971,21 @@ function inferRestGuidance(session) {
   return match ? match.rest : null;
 }
 
+// Pace ranges straight from the CPET zone reference panel — sessions that
+// only name a zone (e.g. "(Z1–Z2)") without a number get the pace spelled
+// out too, so you don't have to cross-reference the zone table separately.
+const ZONE_PACE = {
+  "Z1–Z2": "5:13–4:48/km",
+  "Z2": "5:13–4:48/km",
+  "Z3": "4:48–4:17/km",
+  "Z4": "4:17–3:45/km",
+};
+
+function withZonePace(text) {
+  if (/\d:\d{2}\s*\/?\s*km/.test(text)) return text; // already has an explicit pace, don't clutter
+  return text.replace(/\((Z1–Z2|Z2|Z3|Z4)\)/, (m, zone) => `(${zone} · ${ZONE_PACE[zone]})`);
+}
+
 function renderWeekAccordion(weekLabel, sessions, activities, todayStr, adjustments, isCurrent) {
   const sorted = sessions.slice().sort((a, b) => a.date.localeCompare(b.date));
   const first = sorted[0];
@@ -982,7 +997,7 @@ function renderWeekAccordion(weekLabel, sessions, activities, todayStr, adjustme
   const rows = sorted
     .map((s) => {
       const status = sessionStatus(s, activities, todayStr);
-      const mainText = s.title_and_target + (s.detail ? ` — ${s.detail}` : "");
+      const mainText = withZonePace(s.title_and_target + (s.detail ? ` — ${s.detail}` : ""));
       let html;
       if (s._original) {
         const badgeText = s._kind === "override" ? "Manuell angepasst" : "Getauscht";
