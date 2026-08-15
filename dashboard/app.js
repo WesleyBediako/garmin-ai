@@ -648,11 +648,11 @@ function renderPaceGapGauge() {
     <div class="hero-top">
       <div>
         <div class="hero-title">Target Marathon Pace vs. gemessenes VT2</div>
-        <div class="hero-sub">Aus der Spiroergometrie vom 10.08.2026. 3:36/km ist das <strong>aspirative A-Ziel-Tempo</strong> (2:32–2:34) — aktuell schneller als die gemessene Schwelle, deshalb <strong>keine Trainingspace</strong>. Trainiert wird die "Current Marathon Effort"-Pace, die im Block schrittweise Richtung VT2 (3:45/km) kalibriert wird, nicht darüber hinaus.</div>
+        <div class="hero-sub">Aus der Spiroergometrie vom 10.08.2026. 3:36/km ist das <strong>aspirative A-Ziel-Tempo</strong> (2:32–2:34) — am 10.08. noch schneller als die gemessene Schwelle. Threshold-Sessions bleiben den ganzen Block unter VT2 (das ist per Definition kontrollierte Schwellenarbeit). Die "Current Marathon Effort"-Pace in den Long Runs darf aber ab W16 über die alte VT2-Marke hinaus Richtung Zielpace weiterentwickeln, sobald Kopenhagen und die Blöcke das bestätigen — echte Schwellenverschiebung statt eines fixen Deckels.</div>
       </div>
       <div class="gap-readout">
         <div class="num">${gapLabel}</div>
-        <div class="lbl">Target-Pace schneller als VT2 (noch nicht trainiert)</div>
+        <div class="lbl">Target-Pace schneller als VT2 (Stand 10.08.)</div>
       </div>
     </div>
     <svg class="gauge-svg" viewBox="0 0 1000 170" xmlns="http://www.w3.org/2000/svg">
@@ -681,7 +681,7 @@ function renderPaceGapGauge() {
       <line x1="${x(vt2)}" y1="60" x2="${x(vt2)}" y2="112" stroke="#FF5A45" stroke-width="2.5"/>
       <circle cx="${x(vt2)}" cy="90" r="5" fill="#FF5A45"/>
       <text x="${x(vt2)}" y="48" text-anchor="middle" font-family="monospace" font-size="12.5" fill="#FF5A45" font-weight="700">VT2 16,0</text>
-      <text x="${x(vt2)}" y="165" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#FF5A45">Current-Effort-Obergrenze</text>
+      <text x="${x(vt2)}" y="165" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#FF5A45">Threshold-Deckel (dauerhaft)</text>
 
       <line x1="${x(target)}" y1="60" x2="${x(target)}" y2="112" stroke="#F2B134" stroke-width="2.5" stroke-dasharray="3,3"/>
       <circle cx="${x(target)}" cy="90" r="5" fill="#F2B134"/>
@@ -693,7 +693,7 @@ function renderPaceGapGauge() {
     <div class="gauge-legend">
       <div class="leg-item"><span class="leg-dot" style="background:#2FBFA6"></span>FatMax — Fettstoffwechsel-Obergrenze</div>
       <div class="leg-item"><span class="leg-dot" style="background:#8C96A3"></span>VT1 — aerobe Schwelle</div>
-      <div class="leg-item"><span class="leg-dot" style="background:#FF5A45"></span>VT2 — Current-Marathon-Effort-Deckel (nie schneller trainiert)</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#FF5A45"></span>VT2 — Deckel für Threshold-Sessions (dauerhaft); Marathon-Effort darf ab W16 evidenzbasiert darüber hinaus</div>
       <div class="leg-item"><span class="leg-dot" style="border:1.5px dashed #F2B134;background:transparent"></span>Target Marathon Pace (3:36/km) — A-Ziel, wird nicht routinemäßig trainiert</div>
     </div>
   </section>`;
@@ -904,9 +904,9 @@ function renderZones() {
     { name: "Recovery", pace: "&gt; 5:13/km", kmh: "&lt; 11,5 km/h", use: "sehr locker, aktive Erholung", target: false },
     { name: "FatMax / Easy", pace: "5:13–4:48/km", kmh: "11,5–12,5 km/h", use: "Grundlage, Fettstoffwechsel (LTP1)", target: false },
     { name: "Steady", pace: "4:48–4:17/km", kmh: "12,5–14,0 km/h", use: "aerob, zwischen LTP1 und Schwelle", target: false },
-    { name: "Threshold (kontrolliert)", pace: "4:05–3:50/km", kmh: "~14,6–15,3 km/h", use: "Norwegian-Style, nie schneller als VT2", target: false },
-    { name: "Current Marathon Effort", pace: "wird kalibriert, ≤ 3:45/km", kmh: "≥ 16,0 km/h", use: "entwickelt sich über den Block, Deckel = VT2", target: false },
-    { name: "Target Marathon Pace", pace: "3:36/km", kmh: "16,7 km/h", use: "A-Ziel 2:32–2:34 — aspirativ, keine Trainingspace", target: true },
+    { name: "Threshold (kontrolliert)", pace: "4:05–3:50/km", kmh: "~14,6–15,3 km/h", use: "Norwegian-Style, dauerhaft nie schneller als VT2", target: false },
+    { name: "Current Marathon Effort", pace: "wird kalibriert, ~4:05→3:37/km", kmh: "steigend über den Block", use: "ab W16 evidenzbasiert über VT2 hinaus Richtung Zielpace", target: false },
+    { name: "Target Marathon Pace", pace: "3:36/km", kmh: "16,7 km/h", use: "A-Ziel 2:32–2:34 — ab W17 echte Long-Run-Segmente, kein reines Taper-Extra", target: true },
   ];
   const cards = zones
     .map(
