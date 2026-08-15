@@ -876,7 +876,7 @@ function renderNorwegianPrinciples() {
 
 function renderCalibrationCheckpoints(plan, todayStr) {
   const checkpoints = [
-    { date: "2026-09-20", label: "Kopenhagen Halbmarathon", desc: "Wichtigster Reality-Check vor Valencia. Ergebnis kalibriert die Current-Marathon-Effort-Pace für den Rest des Blocks — kein festes Pace-Ziel, Effort und Ergebnis entscheiden." },
+    { date: "2026-09-20", label: "Kopenhagen Halbmarathon", desc: "Wichtigster Reality-Check vor Valencia. Faustregel: Current Marathon Effort ≈ Kopenhagen-HM-Pace + 25–35 s/km. Die Effort-Paces ab W13 sind vorläufige Schätzungen — nach dem Rennen mit echtem Ergebnis, Perceived Effort und Long-Run-Durability abgleichen, nicht blind der Vorgabe folgen." },
     { date: "2026-09-13", label: "Erste marathonspezifische Einheit", desc: "Long Run mit ersten 8 km @Current Marathon Effort — erste Standortbestimmung vor Kopenhagen." },
     { date: "2026-11-01", label: "Peak-Marathon-Simulation", desc: "34 km mit 2×8km @Current Marathon Effort, Fueling-Strategie live getestet (75–90 g KH/h)." },
   ];
