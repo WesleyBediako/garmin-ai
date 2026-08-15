@@ -718,11 +718,11 @@ function renderWeeklyVolumeChart(weeklyStats) {
     <div class="panel-head"><div class="panel-title">Wochenumfang · 22 Wochen</div><div class="panel-note">Ist vs. Plan</div></div>
     ${weeklyVolumeChartSVG(weeklyStats)}
     <div class="vol-phase-legend">
-      <div class="leg-item"><span class="leg-dot" style="background:#6B7A94"></span>Vorbereitung</div>
-      <div class="leg-item"><span class="leg-dot" style="background:#2FBFA6"></span>Phase 1 · Basis</div>
-      <div class="leg-item"><span class="leg-dot" style="background:#F2B134"></span>Phase 2 · Kopenhagen</div>
-      <div class="leg-item"><span class="leg-dot" style="background:#FF5A45"></span>Phase 3 · Aufbau</div>
-      <div class="leg-item"><span class="leg-dot" style="background:#6B7A94"></span>Phase 4 · Taper</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#6B7A94"></span>Vorbereitung — Berlin 10K</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#2FBFA6"></span>Phase 1 · Schwellenaufbau</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#F2B134"></span>Kopenhagen & Reload</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#FF5A45"></span>Phase 2 · Marathonspezifisch</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#6B7A94"></span>Phase 3 · Taper & Rennen</div>
     </div>
   </section>`;
 }
@@ -960,26 +960,27 @@ function renderFueling() {
 
 const PHASE_TITLES = {
   p0: "Vorbereitung — Berlin 10K",
-  p1: "Phase 1 — Basis",
-  p2: "Phase 2 — Kopenhagen",
-  p3: "Phase 3 — Aufbau",
-  p4: "Phase 4 — Taper",
+  p1: "Phase 1 — Schwellenaufbau",
+  p2: "Kopenhagen & Reload",
+  p3: "Phase 2 — Marathonspezifisch",
+  p4: "Phase 3 — Taper & Rennen",
 };
 
 const PHASE_INTROS = {
   p0: "Ursprünglicher Aufbau vor der Leistungsdiagnostik — Berlin City Night 10K als erster Formcheck.",
-  p1: "Umfang aufbauen, Grundlagentempo sauber in Z2 verankern, erste Schwellenreize setzen.",
-  p2: "Frische aufbauen, Kopenhagen als schnellen Tune-up nutzen (nicht All-out) und Renn-Feedback für die Marathonpace-Kalibrierung sammeln.",
-  p3: "Peak-Umfang, marathonspezifische Ökonomie, lange Ermüdungsresistenz, Fueling-Praxis (75–90 g KH/h).",
-  p4: "Umfang runter, Frische rauf, Renn-Schärfe halten.",
+  p1: "Kontrollierte Schwellenarbeit nach Norwegian-Prinzipien, Volumen von 85 auf 107 km aufgebaut — Grundlage vor Spezifität.",
+  p2: "Kopenhagen Halbmarathon als wichtigster Reality-Check vor Valencia, danach eine bewusste Reload-Woche vor dem marathonspezifischen Block.",
+  p3: "Marathonspezifischer Aufbau von 85 auf 140 km Peak — Schwelle, Marathon-Effort-Blöcke und Long Runs abwechselnd dosiert, damit keine Woche drei maximale Reize stapelt.",
+  p4: "Progressiver Taper: Umfang runter, Schärfe halten — bis zum Valencia Marathon am 6. Dezember.",
 };
 
 function getPhaseKey(block) {
   if (!block) return "p0";
-  if (block.startsWith("PHASE 1")) return "p1";
-  if (block.startsWith("PHASE 2")) return "p2";
-  if (block.startsWith("PHASE 3")) return "p3";
-  if (block.startsWith("PHASE 4")) return "p4";
+  if (block.includes("BLOCK 1") || block.includes("WETTKAMPFWOCHE")) return "p0";
+  if (block.includes("KOPENHAGEN-BLOCK") || block.startsWith("PHASE 1")) return "p1";
+  if (block.includes("KOPENHAGEN HALBMARATHON") || block.includes("RELOAD NACH KOPENHAGEN")) return "p2";
+  if (block.startsWith("PHASE 2")) return "p3";
+  if (block.startsWith("PHASE 3") || block.includes("RENNWOCHE")) return "p4";
   return "p0";
 }
 
