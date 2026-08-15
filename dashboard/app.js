@@ -522,7 +522,7 @@ function computeCoachTip(wellness, dates, activities, plan, todayStr, activityDa
   const targetSession = plan ? plan.sessions.find((s) => s.date === targetDate) : null;
   const hardTypes = ["TRACK", "SCHWELLE", "HMPACE", "FARTLEK", "MPACE"];
   const isHardDay = targetSession && hardTypes.includes(targetSession.type);
-  const isEasyDay = targetSession && ["EASY", "LONG", "RECOVERY", "RAD", "RAD+EASY"].includes(targetSession.type);
+  const isEasyDay = targetSession && ["EASY", "LONG", "RECOVERY", "STEADY", "RAD", "RAD+EASY"].includes(targetSession.type);
   const isRestDay = targetSession && targetSession.type === "REST";
 
   const sessionName = targetSession ? `"${targetSession.title_and_target}"` : `deine ${dayWord === "heute" ? "heutige" : "morgige"} Einheit`;
@@ -647,12 +647,12 @@ function renderPaceGapGauge() {
   return `<section class="panel gauge-panel">
     <div class="hero-top">
       <div>
-        <div class="hero-title">Zielpace vs. gemessene Schwelle</div>
-        <div class="hero-sub">Aus der Spiroergometrie vom 10.08.2026. Die Zielpace liegt oberhalb der gemessenen VT2 — dieser Block ist darauf ausgelegt, genau diese Lücke zu schließen.</div>
+        <div class="hero-title">Target Marathon Pace vs. gemessenes VT2</div>
+        <div class="hero-sub">Aus der Spiroergometrie vom 10.08.2026. 3:36/km ist das <strong>aspirative A-Ziel-Tempo</strong> (2:32–2:34) — aktuell schneller als die gemessene Schwelle, deshalb <strong>keine Trainingspace</strong>. Trainiert wird die "Current Marathon Effort"-Pace, die im Block schrittweise Richtung VT2 (3:45/km) kalibriert wird, nicht darüber hinaus.</div>
       </div>
       <div class="gap-readout">
         <div class="num">${gapLabel}</div>
-        <div class="lbl">Ziel schneller als VT2</div>
+        <div class="lbl">Target-Pace schneller als VT2 (noch nicht trainiert)</div>
       </div>
     </div>
     <svg class="gauge-svg" viewBox="0 0 1000 170" xmlns="http://www.w3.org/2000/svg">
@@ -681,19 +681,20 @@ function renderPaceGapGauge() {
       <line x1="${x(vt2)}" y1="60" x2="${x(vt2)}" y2="112" stroke="#FF5A45" stroke-width="2.5"/>
       <circle cx="${x(vt2)}" cy="90" r="5" fill="#FF5A45"/>
       <text x="${x(vt2)}" y="48" text-anchor="middle" font-family="monospace" font-size="12.5" fill="#FF5A45" font-weight="700">VT2 16,0</text>
+      <text x="${x(vt2)}" y="165" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#FF5A45">Current-Effort-Obergrenze</text>
 
       <line x1="${x(target)}" y1="60" x2="${x(target)}" y2="112" stroke="#F2B134" stroke-width="2.5" stroke-dasharray="3,3"/>
       <circle cx="${x(target)}" cy="90" r="5" fill="#F2B134"/>
-      <text x="${x(target)}" y="150" text-anchor="middle" font-family="monospace" font-size="12.5" fill="#F2B134" font-weight="700">Ziel 16,7</text>
+      <text x="${x(target)}" y="48" text-anchor="middle" font-family="monospace" font-size="12.5" fill="#F2B134" font-weight="700">Target 16,7</text>
 
       <path d="M ${x(vt2)} 30 L ${x(vt2)} 22 L ${x(target)} 22 L ${x(target)} 30" fill="none" stroke="#F2B134" stroke-width="1.5"/>
-      <text x="${(x(vt2) + x(target)) / 2}" y="16" text-anchor="middle" font-family="monospace" font-size="11" fill="#F2B134">zu schließende Lücke</text>
+      <text x="${(x(vt2) + x(target)) / 2}" y="16" text-anchor="middle" font-family="monospace" font-size="11" fill="#F2B134">aspirativ, nicht Trainingsziel</text>
     </svg>
     <div class="gauge-legend">
-      <div class="leg-item"><span class="leg-dot" style="background:#2FBFA6"></span>Z1–Z2 Grundlage / FatMax</div>
-      <div class="leg-item"><span class="leg-dot" style="background:#F2B134;opacity:0.7"></span>Z3 Marathonpace-Blöcke</div>
-      <div class="leg-item"><span class="leg-dot" style="background:#FF5A45;opacity:0.7"></span>Z4–Z5 Schwelle / Intervalle</div>
-      <div class="leg-item"><span class="leg-dot" style="border:1.5px dashed #F2B134;background:transparent"></span>Zielpace (3:36/km)</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#2FBFA6"></span>FatMax — Fettstoffwechsel-Obergrenze</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#8C96A3"></span>VT1 — aerobe Schwelle</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#FF5A45"></span>VT2 — Current-Marathon-Effort-Deckel (nie schneller trainiert)</div>
+      <div class="leg-item"><span class="leg-dot" style="border:1.5px dashed #F2B134;background:transparent"></span>Target Marathon Pace (3:36/km) — A-Ziel, wird nicht routinemäßig trainiert</div>
     </div>
   </section>`;
 }
@@ -856,16 +857,56 @@ function renderDisclaimer() {
   return `<p class="disclaimer">Coach-Tipp und Hinweise werden automatisch aus deinen Garmin-Zahlen und deinem Trainingsplan berechnet (einfache Regeln, keine KI-Ferndiagnose). Bei anhaltenden Beschwerden oder Unsicherheit zur Trainingssteuerung sprich mit deinem Trainer oder Arzt.</p>`;
 }
 
+/* ---------- Norwegian Principles & Calibration Checkpoints ---------- */
+
+function renderNorwegianPrinciples() {
+  const principles = [
+    { t: "Kontrollierte Schwelle", d: "Schwellenläufe bleiben immer unterhalb von VT2 (3:45/km) und enden mit 1–2 Wiederholungen in Reserve. Kein Rennen gegen sich selbst — die Session soll wiederholbar sein, nicht einmalig maximal." },
+    { t: "Laktatstabilität statt fixem 4-mmol-Punkt", d: "Der pauschale 4-mmol-Punkt wird nicht als deine LT2 behandelt. Deine gemessene VT2/LTP2 liegt bei ~16 km/h — Laktat wird individuell interpretiert, nicht nach Lehrbuch-Standardwert." },
+    { t: "Wiederholbarkeit statt Einzelmaximum", d: "Ziel ist nicht die härteste einzelne Einheit, sondern dass sich dieselbe kontrollierte Schwellenbelastung Woche für Woche wiederholen lässt, ohne dich auszuhöhlen." },
+    { t: "Easy heißt wirklich easy", d: "Die große Mehrheit der Kilometer läuft im FatMax-/Recovery-Bereich (langsamer als 4:48/km). Das ist kein Kompromiss, sondern die Grundlage, auf der die Schwellenarbeit erst wirkt." },
+    { t: "Marathon-Spezifität vor VO2max-Arbeit", d: "Dein VO2max (87,1 ml/kg/min) ist laut Befund explizit nicht der limitierende Faktor. Deshalb kein unnötiges VO2max-Training — der Fokus liegt auf Laufökonomie, FatMax-Verschiebung, Ermüdungsresistenz und Fueling-Toleranz." },
+  ];
+  const cards = principles.map((p) => `<div class="term"><h4>${p.t}</h4><p>${p.d}</p></div>`).join("");
+  return `<section class="panel">
+    <div class="panel-head"><div class="panel-title">Norwegian Principles</div><div class="panel-note">Warum dieser Block so aufgebaut ist</div></div>
+    <div class="zones" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">${cards}</div>
+  </section>`;
+}
+
+function renderCalibrationCheckpoints(plan, todayStr) {
+  const checkpoints = [
+    { date: "2026-09-20", label: "Kopenhagen Halbmarathon", desc: "Wichtigster Reality-Check vor Valencia. Ergebnis kalibriert die Current-Marathon-Effort-Pace für den Rest des Blocks — kein festes Pace-Ziel, Effort und Ergebnis entscheiden." },
+    { date: "2026-09-13", label: "Erste marathonspezifische Einheit", desc: "Long Run mit ersten 8 km @Current Marathon Effort — erste Standortbestimmung vor Kopenhagen." },
+    { date: "2026-11-01", label: "Peak-Marathon-Simulation", desc: "34 km mit 2×8km @Current Marathon Effort, Fueling-Strategie live getestet (75–90 g KH/h)." },
+  ];
+  const rows = checkpoints
+    .map((c) => {
+      const n = daysUntil(c.date, todayStr);
+      const status = n > 0 ? `in ${n} Tagen` : n === 0 ? "heute" : `vor ${Math.abs(n)} Tagen`;
+      const isPast = n < 0;
+      return `<div class="day-row">
+        <div class="dd">${c.date}<br><span style="color:${isPast ? "var(--aerobic)" : "var(--target)"}">${status}</span></div>
+        <div class="ds"><strong>${c.label}</strong><div style="font-size:0.78rem;color:var(--text-dim);margin-top:2px">${c.desc}</div></div>
+      </div>`;
+    })
+    .join("");
+  return `<section class="panel">
+    <div class="panel-head"><div class="panel-title">Calibration Checkpoints</div><div class="panel-note">Wo die Marathon-Pace nachjustiert wird</div></div>
+    ${rows}
+  </section>`;
+}
+
 /* ---------- Zone reference (from CPET, Longevity Center Nürnberg 10.08.2026) ---------- */
 
 function renderZones() {
   const zones = [
-    { name: "Z1 Regeneration", pace: "&gt; 5:13/km", kmh: "&lt; 11,5 km/h", use: "sehr locker", target: false },
-    { name: "Z2 Grundlage / FatMax", pace: "5:13–4:48/km", kmh: "11,5–12,5 km/h", use: "Fettstoffwechsel", target: false },
-    { name: "Z3 Marathon / Steady", pace: "4:48–4:17/km", kmh: "12,5–14,0 km/h", use: "Marathonblöcke", target: false },
-    { name: "Z4 Tempo / Schwelle", pace: "4:17–3:45/km", kmh: "14,0–16,0 km/h", use: "kontrolliert hart", target: false },
-    { name: "Z5 Hochintensiv", pace: "&lt; 3:45/km", kmh: "&gt; 16,0 km/h", use: "kurze Intervalle", target: false },
-    { name: "Zielpace Marathon", pace: "3:36/km", kmh: "16,7 km/h", use: "A-Ziel 2:32–2:34", target: true },
+    { name: "Recovery", pace: "&gt; 5:13/km", kmh: "&lt; 11,5 km/h", use: "sehr locker, aktive Erholung", target: false },
+    { name: "FatMax / Easy", pace: "5:13–4:48/km", kmh: "11,5–12,5 km/h", use: "Grundlage, Fettstoffwechsel (LTP1)", target: false },
+    { name: "Steady", pace: "4:48–4:17/km", kmh: "12,5–14,0 km/h", use: "aerob, zwischen LTP1 und Schwelle", target: false },
+    { name: "Threshold (kontrolliert)", pace: "4:05–3:50/km", kmh: "~14,6–15,3 km/h", use: "Norwegian-Style, nie schneller als VT2", target: false },
+    { name: "Current Marathon Effort", pace: "wird kalibriert, ≤ 3:45/km", kmh: "≥ 16,0 km/h", use: "entwickelt sich über den Block, Deckel = VT2", target: false },
+    { name: "Target Marathon Pace", pace: "3:36/km", kmh: "16,7 km/h", use: "A-Ziel 2:32–2:34 — aspirativ, keine Trainingspace", target: true },
   ];
   const cards = zones
     .map(
@@ -878,9 +919,9 @@ function renderZones() {
     )
     .join("");
   return `<section class="panel">
-    <div class="panel-head"><div class="panel-title">Pace-Zonen (aus CPET)</div><div class="panel-note">Laufband-Spiroergometrie, 10.08.2026</div></div>
+    <div class="panel-head"><div class="panel-title">Pace-Kategorien (aus CPET)</div><div class="panel-note">Laufband-Spiroergometrie, 10.08.2026</div></div>
     <div class="zones">${cards}</div>
-    <p class="disclaimer">VO₂max 87,1 ml/kg/min · VT1 13,0 km/h · VT2/RCP 16,0 km/h · Laktatbasiert liegt die erste Schwelle eher bei 11,5–12,5 km/h (FatMax) — Grundlagenläufe bewusst darunter halten, nicht bis VT1 ausreizen.</p>
+    <p class="disclaimer">VO₂max 87,1 ml/kg/min (kein limitierender Faktor laut Befund) · VT1 13,0 km/h (4:37/km) · VT2/LTP2 16,0 km/h (3:45/km) · Laktatbasiert liegt LTP1 eher bei 11,5–12,5 km/h (FatMax) — Grundlagenläufe bewusst darunter halten. Der fixe 4-mmol-Punkt wird nicht als LT2 behandelt, Laktat wird individuell interpretiert.</p>
   </section>`;
 }
 
@@ -992,6 +1033,7 @@ function renderWeekAccordion(weekLabel, sessions, activities, todayStr, adjustme
   const last = sorted[sorted.length - 1];
   const dateRange = `${fmtDate(first.date)}–${fmtDate(last.date)}`;
   const hasRace = sorted.some((s) => s.type === "RACE");
+  const hasDoubleThreshold = sorted.some((s) => s.double_threshold);
   const focus = (first.block || "").split("·").pop().trim();
 
   const rows = sorted
@@ -1012,6 +1054,9 @@ function renderWeekAccordion(weekLabel, sessions, activities, todayStr, adjustme
       if (restGuidance) {
         html += `<div style="font-size:0.72rem;color:var(--target);margin-top:2px">↳ Pause zwischen den Wiederholungen: ${restGuidance} <span style="color:var(--muted)">(Richtwert aus deiner Leistungsdiagnostik)</span></div>`;
       }
+      if (s.double_threshold) {
+        html += `<div style="margin-top:4px"><span class="badge low">2× Schwelle (AM/PM)</span></div>`;
+      }
       const raceClass = s.type === "RACE" ? " race" : "";
       const isToday = s.date === todayStr;
       const todayStyle = isToday ? ' style="outline:1px solid var(--aerobic)"' : "";
@@ -1029,7 +1074,7 @@ function renderWeekAccordion(weekLabel, sessions, activities, todayStr, adjustme
       <span class="sw-week">${weekLabel}</span>
       <span class="sw-dates">${dateRange}</span>
       <span class="sw-vol">${first.week_volume || ""}</span>
-      <span class="sw-focus">${focus}</span>
+      <span class="sw-focus">${focus}${hasDoubleThreshold ? ' <span class="badge low" style="margin-left:6px">2× Schwelle</span>' : ""}</span>
       <span class="sw-arrow">▸</span>
     </summary>
     <div class="week-body">${rows}</div>
@@ -1159,6 +1204,8 @@ async function main() {
     renderPageHeader(plan, dates, Object.keys(activities).length) +
     `<div class="wrap">` +
     renderPaceGapGauge() +
+    renderNorwegianPrinciples() +
+    renderCalibrationCheckpoints(plan, todayStr) +
     renderCoachTip(coachTip) +
     renderWeekStats(weeklyStats, currentWeekLabel) +
     renderInsights(insights) +
