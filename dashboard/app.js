@@ -857,22 +857,7 @@ function renderDisclaimer() {
   return `<p class="disclaimer">Coach-Tipp und Hinweise werden automatisch aus deinen Garmin-Zahlen und deinem Trainingsplan berechnet (einfache Regeln, keine KI-Ferndiagnose). Bei anhaltenden Beschwerden oder Unsicherheit zur Trainingssteuerung sprich mit deinem Trainer oder Arzt.</p>`;
 }
 
-/* ---------- Norwegian Principles & Calibration Checkpoints ---------- */
-
-function renderNorwegianPrinciples() {
-  const principles = [
-    { t: "Kontrollierte Schwelle", d: "Schwellenläufe bleiben immer unterhalb von VT2 (3:45/km) und enden mit 1–2 Wiederholungen in Reserve. Kein Rennen gegen sich selbst — die Session soll wiederholbar sein, nicht einmalig maximal." },
-    { t: "Laktatstabilität statt fixem 4-mmol-Punkt", d: "Der pauschale 4-mmol-Punkt wird nicht als deine LT2 behandelt. Deine gemessene VT2/LTP2 liegt bei ~16 km/h — Laktat wird individuell interpretiert, nicht nach Lehrbuch-Standardwert." },
-    { t: "Wiederholbarkeit statt Einzelmaximum", d: "Ziel ist nicht die härteste einzelne Einheit, sondern dass sich dieselbe kontrollierte Schwellenbelastung Woche für Woche wiederholen lässt, ohne dich auszuhöhlen." },
-    { t: "Easy heißt wirklich easy", d: "Die große Mehrheit der Kilometer läuft im FatMax-/Recovery-Bereich (langsamer als 4:48/km). Das ist kein Kompromiss, sondern die Grundlage, auf der die Schwellenarbeit erst wirkt." },
-    { t: "Marathon-Spezifität vor VO2max-Arbeit", d: "Dein VO2max (87,1 ml/kg/min) ist laut Befund explizit nicht der limitierende Faktor. Deshalb kein unnötiges VO2max-Training — der Fokus liegt auf Laufökonomie, FatMax-Verschiebung, Ermüdungsresistenz und Fueling-Toleranz." },
-  ];
-  const cards = principles.map((p) => `<div class="term"><h4>${p.t}</h4><p>${p.d}</p></div>`).join("");
-  return `<section class="panel">
-    <div class="panel-head"><div class="panel-title">Norwegian Principles</div><div class="panel-note">Warum dieser Block so aufgebaut ist</div></div>
-    <div class="zones" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">${cards}</div>
-  </section>`;
-}
+/* ---------- Calibration Checkpoints ---------- */
 
 function renderCalibrationCheckpoints(plan, todayStr) {
   const checkpoints = [
@@ -1205,7 +1190,6 @@ async function main() {
     renderPageHeader(plan, dates, Object.keys(activities).length) +
     `<div class="wrap">` +
     renderPaceGapGauge() +
-    renderNorwegianPrinciples() +
     renderCalibrationCheckpoints(plan, todayStr) +
     renderCoachTip(coachTip) +
     renderWeekStats(weeklyStats, currentWeekLabel) +
