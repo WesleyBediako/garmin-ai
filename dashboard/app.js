@@ -336,17 +336,20 @@ function computeWeeklyStats(plan, activities) {
   Object.values(activities).forEach((a) => {
     const date = (a.startTimeLocal || "").split(" ")[0];
     const week = dateToWeek[date] || "?";
-    if (!weeks[week]) weeks[week] = { km: 0, bikeKm: 0, hours: 0, count: 0 };
+    if (!weeks[week]) weeks[week] = { km: 0, bikeKm: 0, hours: 0, bikeHours: 0, count: 0 };
     const actType = ((a.activityType || {}).typeKey || "").toLowerCase();
     const distKm = (a.distance || 0) / 1000;
-    // The plan's weekly km target is a running target — cycling km aren't
-    // comparable distance-for-distance, so keep them out of "Volumen".
+    const durHours = (a.duration || 0) / 3600;
+    // The plan's weekly km/hours targets are running-specific — cycling
+    // isn't comparable minute-for-minute or km-for-km, so keep it separate
+    // rather than silently inflating "Volumen"/"Stunden".
     if (actType.includes("running")) {
       weeks[week].km += distKm;
+      weeks[week].hours += durHours;
     } else if (actType.includes("cycl") || actType.includes("biking")) {
       weeks[week].bikeKm += distKm;
+      weeks[week].bikeHours += durHours;
     }
-    weeks[week].hours += (a.duration || 0) / 3600;
     weeks[week].count += 1;
   });
   const weekOrder = plan ? [...new Set(plan.sessions.map((s) => s.week))] : Object.keys(weeks).sort();
@@ -354,12 +357,13 @@ function computeWeeklyStats(plan, activities) {
   if (plan) plan.sessions.forEach((s) => { if (!(s.week in weekBlock)) weekBlock[s.week] = s.block; });
 
   const series = weekOrder.map((w) => {
-    const wk = weeks[w] || { km: 0, bikeKm: 0, hours: 0, count: 0 };
+    const wk = weeks[w] || { km: 0, bikeKm: 0, hours: 0, bikeHours: 0, count: 0 };
     return {
       label: w,
       actual: wk.km,
       bikeKm: wk.bikeKm,
       hours: wk.hours,
+      bikeHours: wk.bikeHours,
       count: wk.count,
       planned: weekPlanned[w] || null,
       phase: getPhaseKey(weekBlock[w]),
@@ -700,13 +704,14 @@ function renderPaceGapGauge() {
 }
 
 function renderWeekStats(weeklyStats, currentWeekLabel) {
-  const cur = weeklyStats.find((w) => w.label === currentWeekLabel) || { actual: 0, hours: 0, count: 0, planned: null };
+  const cur = weeklyStats.find((w) => w.label === currentWeekLabel) || { actual: 0, hours: 0, bikeHours: 0, count: 0, planned: null };
   const pct = cur.planned ? Math.round((cur.actual / cur.planned) * 100) : null;
+  const bikeNote = cur.bikeHours > 0 ? `<div style="font-size:0.78rem;color:var(--muted);margin-top:2px">+ ${fmtHM(cur.bikeHours)} Rad (separat)</div>` : "";
   return `<section class="panel">
     <div class="panel-head"><div class="panel-title">Diese Woche (${currentWeekLabel || "—"})</div></div>
     <div class="grid">
-      ${statCard("Volumen", `${cur.actual.toFixed(1)}<span class="unit inline"> / ${cur.planned ? "~" + cur.planned : "?"} km</span>`)}
-      ${statCard("Stunden", fmtHM(cur.hours))}
+      ${statCard("Volumen (Lauf)", `${cur.actual.toFixed(1)}<span class="unit inline"> / ${cur.planned ? "~" + cur.planned : "?"} km</span>`)}
+      ${statCard("Laufstunden", fmtHM(cur.hours), bikeNote)}
       ${statCard("Einheiten absolviert", `${cur.count}`)}
       ${statCard("Wochen-Fortschritt", pct != null ? `${pct}%` : "n/a")}
     </div>
