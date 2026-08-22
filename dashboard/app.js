@@ -376,6 +376,53 @@ function computeWeeklyStats(plan, activities) {
   return series;
 }
 
+/* ---------- aerobic efficiency trend (HR-per-speed at easy pace) ---------- */
+
+// Only easy-ish runs count (slower than 4:35/km) — mixing in threshold/race
+// pace would make "HR per speed" meaningless, since faster running always
+// costs more HR regardless of fitness.
+const EASY_PACE_FLOOR_SEC = 4 * 60 + 35;
+
+function computeEfficiencyTrend(activities, todayStr) {
+  const runs = Object.values(activities)
+    .filter((a) => {
+      const type = ((a.activityType || {}).typeKey || "").toLowerCase();
+      return type.includes("running") && a.distance && a.duration && a.averageHR;
+    })
+    .map((a) => {
+      const date = (a.startTimeLocal || "").split(" ")[0];
+      const paceSecPerKm = a.duration / (a.distance / 1000);
+      const speedKmh = a.distance / 1000 / (a.duration / 3600);
+      return { date, hr: a.averageHR, paceSecPerKm, speedKmh, efficiency: a.averageHR / speedKmh };
+    })
+    .filter((r) => r.paceSecPerKm >= EASY_PACE_FLOOR_SEC);
+
+  const recentCutoff = addDays(todayStr, -14);
+  const priorCutoff = addDays(todayStr, -28);
+  const recent = runs.filter((r) => r.date > recentCutoff && r.date <= todayStr);
+  const prior = runs.filter((r) => r.date > priorCutoff && r.date <= recentCutoff);
+
+  if (recent.length < 3 || prior.length < 3) {
+    return { insufficientData: true, recentCount: recent.length, priorCount: prior.length };
+  }
+
+  const avg = (arr, key) => arr.reduce((s, r) => s + r[key], 0) / arr.length;
+  const recentEff = avg(recent, "efficiency");
+  const priorEff = avg(prior, "efficiency");
+  const pctChange = ((recentEff - priorEff) / priorEff) * 100;
+
+  return {
+    insufficientData: false,
+    pctChange,
+    recentAvgHR: avg(recent, "hr"),
+    priorAvgHR: avg(prior, "hr"),
+    recentAvgPace: avg(recent, "paceSecPerKm"),
+    priorAvgPace: avg(prior, "paceSecPerKm"),
+    recentCount: recent.length,
+    priorCount: prior.length,
+  };
+}
+
 /* ---------- insights (rule-based, computed from your actual numbers) ---------- */
 
 function computeInsights(wellness, dates, activities, plan, todayStr) {
@@ -479,6 +526,24 @@ function computeInsights(wellness, dates, activities, plan, todayStr) {
       title: "Stresslevel steigt an",
       body: `Durchschnittlicher Stresswert zuletzt bei ${stressSeries[stressSeries.length - 1]} (Anstieg gegenüber ${stressSeries[0]} vor ein paar Tagen). Kombiniert mit den Trainingswerten oben lohnt es sich, auf ausreichend Schlaf und Erholungstage zu achten.`,
     });
+  }
+
+  // 6) Aerobic efficiency trend (HR per speed on easy-pace runs, last 14 vs. prior 14 days)
+  const eff = computeEfficiencyTrend(activities, todayStr);
+  if (eff && !eff.insufficientData) {
+    if (eff.pctChange <= -4) {
+      insights.push({
+        tone: "good",
+        title: "Aerobe Effizienz verbessert sich",
+        body: `Bei Easy-Läufen (Ø ${fmtPace(Math.round(eff.recentAvgPace))}) liegt deine Ø-HF jetzt bei ${Math.round(eff.recentAvgHR)} bpm, vor 2 Wochen noch bei ${Math.round(eff.priorAvgHR)} bpm (Ø ${fmtPace(Math.round(eff.priorAvgPace))}) — das ist ${Math.abs(eff.pctChange).toFixed(1)}% weniger HF-Kosten pro Tempo. → Die FatMax/Easy-Pace-Range könnte bald etwas schneller werden, wenn sich das über weitere Läufe bestätigt. Sag Bescheid, wenn ich das im Plan anpassen soll.`,
+      });
+    } else if (eff.pctChange >= 5) {
+      insights.push({
+        tone: "warn",
+        title: "Aerobe Effizienz lässt gerade nach",
+        body: `Bei Easy-Läufen kostet dieselbe Pace zuletzt mehr Herzfrequenz als vor 2 Wochen (Ø ${Math.round(eff.recentAvgHR)} vs. ${Math.round(eff.priorAvgHR)} bpm bei ähnlichem Tempo, +${eff.pctChange.toFixed(1)}%). Kann Ermüdung, Hitze oder unvollständige Erholung sein — kein Grund zur Panik, aber ein Signal, easy-Tage wirklich easy zu halten.`,
+      });
+    }
   }
 
   if (insights.length === 0) {
