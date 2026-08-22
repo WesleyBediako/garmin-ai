@@ -376,33 +376,59 @@ function computeWeeklyStats(plan, activities) {
   return series;
 }
 
-/* ---------- aerobic efficiency trend (HR-per-speed at easy pace) ---------- */
+/* ---------- aerobic efficiency trend (HR-per-speed, per session category) ---------- */
 
-// Only easy-ish runs count (slower than 4:35/km) — mixing in threshold/race
-// pace would make "HR per speed" meaningless, since faster running always
-// costs more HR regardless of fitness.
-const EASY_PACE_FLOOR_SEC = 4 * 60 + 35;
+// Which planned session types count as a sample for each category. Classification
+// goes by what the PLAN said that day, not just raw pace — more reliable than
+// guessing from pace alone, especially for telling Steady apart from Easy.
+const EFFICIENCY_CATEGORIES = {
+  easy: { types: ["EASY", "RECOVERY"], label: "Easy-Läufe", windowDays: 14, minSamples: 3 },
+  steady: { types: ["STEADY"], label: "Steady-Läufe", windowDays: 28, minSamples: 2 },
+  long: { types: ["LONG"], label: "Long Runs", windowDays: 28, minSamples: 2 },
+  workout: { types: ["SCHWELLE"], label: "Schwelle-Workouts (Arbeitsabschnitte)", windowDays: 28, minSamples: 2 },
+};
 
-function computeEfficiencyTrend(activities, todayStr) {
-  const runs = Object.values(activities)
-    .filter((a) => {
-      const type = ((a.activityType || {}).typeKey || "").toLowerCase();
-      return type.includes("running") && a.distance && a.duration && a.averageHR;
-    })
+// For threshold workouts, the whole-activity average is contaminated by
+// warm-up/cooldown/rest jogs — only the classified "work" laps (see
+// garmin_sync.py's classify_laps) give a meaningful HR-per-speed number.
+function extractEfficiencySample(a, category) {
+  if (category === "workout") {
+    const workLaps = (a.lap_structure || []).filter((l) => l.kind === "work" && l.avg_hr);
+    if (workLaps.length < 2) return null;
+    const totalDist = workLaps.reduce((s, l) => s + l.distance_m, 0);
+    const totalDur = workLaps.reduce((s, l) => s + l.duration_s, 0);
+    if (!totalDist || !totalDur) return null;
+    const avgHr = workLaps.reduce((s, l) => s + l.avg_hr, 0) / workLaps.length;
+    return { hr: avgHr, speedKmh: totalDist / 1000 / (totalDur / 3600) };
+  }
+  if (!a.distance || !a.duration || !a.averageHR) return null;
+  return { hr: a.averageHR, speedKmh: a.distance / 1000 / (a.duration / 3600) };
+}
+
+function computeEfficiencyTrend(activities, plan, todayStr, category) {
+  const cfg = EFFICIENCY_CATEGORIES[category];
+  const plannedByDate = {};
+  if (plan) plan.sessions.forEach((s) => (plannedByDate[s.date] = s));
+
+  const samples = Object.values(activities)
     .map((a) => {
+      const type = ((a.activityType || {}).typeKey || "").toLowerCase();
+      if (!type.includes("running")) return null;
       const date = (a.startTimeLocal || "").split(" ")[0];
-      const paceSecPerKm = a.duration / (a.distance / 1000);
-      const speedKmh = a.distance / 1000 / (a.duration / 3600);
-      return { date, hr: a.averageHR, paceSecPerKm, speedKmh, efficiency: a.averageHR / speedKmh };
+      const planned = plannedByDate[date];
+      if (!planned || !cfg.types.includes(planned.type)) return null;
+      const s = extractEfficiencySample(a, category);
+      if (!s) return null;
+      return { date, hr: s.hr, speedKmh: s.speedKmh, efficiency: s.hr / s.speedKmh };
     })
-    .filter((r) => r.paceSecPerKm >= EASY_PACE_FLOOR_SEC);
+    .filter(Boolean);
 
-  const recentCutoff = addDays(todayStr, -14);
-  const priorCutoff = addDays(todayStr, -28);
-  const recent = runs.filter((r) => r.date > recentCutoff && r.date <= todayStr);
-  const prior = runs.filter((r) => r.date > priorCutoff && r.date <= recentCutoff);
+  const recentCutoff = addDays(todayStr, -cfg.windowDays);
+  const priorCutoff = addDays(todayStr, -cfg.windowDays * 2);
+  const recent = samples.filter((r) => r.date > recentCutoff && r.date <= todayStr);
+  const prior = samples.filter((r) => r.date > priorCutoff && r.date <= recentCutoff);
 
-  if (recent.length < 3 || prior.length < 3) {
+  if (recent.length < cfg.minSamples || prior.length < cfg.minSamples) {
     return { insufficientData: true, recentCount: recent.length, priorCount: prior.length };
   }
 
@@ -416,8 +442,8 @@ function computeEfficiencyTrend(activities, todayStr) {
     pctChange,
     recentAvgHR: avg(recent, "hr"),
     priorAvgHR: avg(prior, "hr"),
-    recentAvgPace: avg(recent, "paceSecPerKm"),
-    priorAvgPace: avg(prior, "paceSecPerKm"),
+    recentAvgPace: 3600 / avg(recent, "speedKmh"),
+    priorAvgPace: 3600 / avg(prior, "speedKmh"),
     recentCount: recent.length,
     priorCount: prior.length,
   };
@@ -528,20 +554,34 @@ function computeInsights(wellness, dates, activities, plan, todayStr) {
     });
   }
 
-  // 6) Aerobic efficiency trend (HR per speed on easy-pace runs, last 14 vs. prior 14 days)
-  const eff = computeEfficiencyTrend(activities, todayStr);
-  if (eff && !eff.insufficientData) {
+  // 6) Aerobic efficiency trend per session category (HR per speed, recent vs. prior window)
+  const EFFICIENCY_SUGGESTIONS = {
+    easy: "Die FatMax/Easy-Pace-Range könnte bald etwas schneller werden",
+    steady: "Die Steady-Pace-Range könnte bald etwas schneller werden",
+    long: "Long Runs könnten etwas mehr Tempo oder mehr marathonspezifische Kilometer vertragen",
+    workout: "Die Schwelle-Zielpaces könnten enger Richtung VT2 gezogen werden (immer noch nicht schneller als VT2)",
+  };
+  const EFFICIENCY_CAUTIONS = {
+    easy: "ein Signal, Easy-Tage wirklich easy zu halten",
+    steady: "ein Signal, die Steady-Läufe nicht zu forcieren",
+    long: "ein Signal, die Long-Run-Pace nicht zu forcieren und auf Fueling/Schlaf zu achten",
+    workout: "ein Signal, die Schwelle-Sessions eher konservativer anzugehen, nicht enger an VT2",
+  };
+  for (const category of Object.keys(EFFICIENCY_CATEGORIES)) {
+    const eff = computeEfficiencyTrend(activities, plan, todayStr, category);
+    if (!eff || eff.insufficientData) continue;
+    const label = EFFICIENCY_CATEGORIES[category].label;
     if (eff.pctChange <= -4) {
       insights.push({
         tone: "good",
-        title: "Aerobe Effizienz verbessert sich",
-        body: `Bei Easy-Läufen (Ø ${fmtPace(Math.round(eff.recentAvgPace))}) liegt deine Ø-HF jetzt bei ${Math.round(eff.recentAvgHR)} bpm, vor 2 Wochen noch bei ${Math.round(eff.priorAvgHR)} bpm (Ø ${fmtPace(Math.round(eff.priorAvgPace))}) — das ist ${Math.abs(eff.pctChange).toFixed(1)}% weniger HF-Kosten pro Tempo. → Die FatMax/Easy-Pace-Range könnte bald etwas schneller werden, wenn sich das über weitere Läufe bestätigt. Sag Bescheid, wenn ich das im Plan anpassen soll.`,
+        title: `Aerobe Effizienz verbessert sich (${label})`,
+        body: `Ø-HF jetzt bei ${Math.round(eff.recentAvgHR)} bpm (Ø ${fmtPace(Math.round(eff.recentAvgPace))}), vorher ${Math.round(eff.priorAvgHR)} bpm (Ø ${fmtPace(Math.round(eff.priorAvgPace))}) — ${Math.abs(eff.pctChange).toFixed(1)}% weniger HF-Kosten pro Tempo (${eff.recentCount} vs. ${eff.priorCount} Einheiten verglichen). → ${EFFICIENCY_SUGGESTIONS[category]}, wenn sich das bestätigt. Sag Bescheid, wenn ich das im Plan anpassen soll.`,
       });
     } else if (eff.pctChange >= 5) {
       insights.push({
         tone: "warn",
-        title: "Aerobe Effizienz lässt gerade nach",
-        body: `Bei Easy-Läufen kostet dieselbe Pace zuletzt mehr Herzfrequenz als vor 2 Wochen (Ø ${Math.round(eff.recentAvgHR)} vs. ${Math.round(eff.priorAvgHR)} bpm bei ähnlichem Tempo, +${eff.pctChange.toFixed(1)}%). Kann Ermüdung, Hitze oder unvollständige Erholung sein — kein Grund zur Panik, aber ein Signal, easy-Tage wirklich easy zu halten.`,
+        title: `Aerobe Effizienz lässt gerade nach (${label})`,
+        body: `Dieselbe Pace kostet zuletzt mehr Herzfrequenz als vorher (Ø ${Math.round(eff.recentAvgHR)} vs. ${Math.round(eff.priorAvgHR)} bpm, +${eff.pctChange.toFixed(1)}%, ${eff.recentCount} vs. ${eff.priorCount} Einheiten verglichen). Kann Ermüdung, Hitze oder unvollständige Erholung sein — kein Grund zur Panik, aber ${EFFICIENCY_CAUTIONS[category]}.`,
       });
     }
   }
