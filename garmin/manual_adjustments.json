@@ -1,12 +1,33 @@
 {
-  "swaps": [
-    {
-      "date_a": "2026-08-22",
-      "date_b": "2026-08-23",
-      "note": "Manuell getauscht: Long Run auf Samstag vorgezogen, Sonntag wird Easy Run."
-    }
-  ],
+  "swaps": [],
   "overrides": [
+    {
+      "date": "2026-08-22",
+      "type": "LONG",
+      "type_label": "Long Run",
+      "title_and_target": "Long Run 28 km",
+      "detail": "28 km — Rein aerob, locker.",
+      "note": null,
+      "reason": "Manuell vorgezogen: Long Run auf Samstag statt Sonntag."
+    },
+    {
+      "date": "2026-08-23",
+      "type": "RECOVERY",
+      "type_label": "Recovery",
+      "title_and_target": "Recovery Run",
+      "detail": "40 min sehr locker (>5:13/km)",
+      "note": null,
+      "reason": "Direkt nach dem Long Run bewusst der ruhigste Tag der Woche, nicht nur 'Easy'."
+    },
+    {
+      "date": "2026-08-24",
+      "type": "EASY",
+      "type_label": "Easy / FatMax",
+      "title_and_target": "Easy Run",
+      "detail": "45 min locker (~4:45–5:00/km)",
+      "note": null,
+      "reason": "Regeneration jetzt Sonntag statt Montag — Montag kann wieder normaler Easy Run sein."
+    },
     {
       "date": "2026-08-09",
       "type": "REST",
