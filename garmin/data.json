@@ -486057,35 +486057,35 @@
       "body_battery": {
         "date": "2026-08-22",
         "charged": 50,
-        "drained": 45,
+        "drained": 46,
         "startTimestampGMT": "2026-08-21T22:00:00.0",
-        "endTimestampGMT": "2026-08-22T10:15:00.0",
+        "endTimestampGMT": "2026-08-22T10:36:00.0",
         "startTimestampLocal": "2026-08-22T00:00:00.0",
-        "endTimestampLocal": "2026-08-22T12:15:00.0",
+        "endTimestampLocal": "2026-08-22T12:36:00.0",
         "bodyBatteryValuesArray": [
           [
             1787349600000,
             40
           ],
           [
-            1787364180000,
-            78
+            1787364540000,
+            79
           ],
           [
             1787371020000,
             90
           ],
           [
-            1787378760000,
-            69
+            1787379660000,
+            66
           ],
           [
-            1787379120000,
-            68
+            1787379840000,
+            66
           ],
           [
-            1787391540000,
-            45
+            1787394780000,
+            44
           ]
         ],
         "bodyBatteryValueDescriptorDTOList": [
@@ -486129,11 +486129,11 @@
         "userProfilePK": 104409518,
         "calendarDate": "2026-08-22",
         "startTimestampGMT": "2026-08-21T22:00:00.0",
-        "endTimestampGMT": "2026-08-22T10:15:00.0",
+        "endTimestampGMT": "2026-08-22T10:36:00.0",
         "startTimestampLocal": "2026-08-22T00:00:00.0",
-        "endTimestampLocal": "2026-08-22T12:15:00.0",
+        "endTimestampLocal": "2026-08-22T12:36:00.0",
         "maxStressLevel": 78,
-        "avgStressLevel": 12,
+        "avgStressLevel": 13,
         "stressChartValueOffset": 1,
         "stressChartYAxisOrigin": -1,
         "stressValueDescriptorsDTOList": [
@@ -487126,6 +487126,34 @@
           [
             1787393520000,
             32
+          ],
+          [
+            1787393700000,
+            -1
+          ],
+          [
+            1787393880000,
+            28
+          ],
+          [
+            1787394060000,
+            25
+          ],
+          [
+            1787394240000,
+            24
+          ],
+          [
+            1787394420000,
+            28
+          ],
+          [
+            1787394600000,
+            20
+          ],
+          [
+            1787394780000,
+            17
           ]
         ],
         "bodyBatteryValueDescriptorsDTOList": [
@@ -488616,6 +488644,48 @@
             "MEASURED",
             45,
             3.0
+          ],
+          [
+            1787393700000,
+            "MEASURED",
+            45,
+            3.0
+          ],
+          [
+            1787393880000,
+            "MEASURED",
+            45,
+            3.0
+          ],
+          [
+            1787394060000,
+            "MEASURED",
+            45,
+            3.0
+          ],
+          [
+            1787394240000,
+            "MEASURED",
+            45,
+            3.0
+          ],
+          [
+            1787394420000,
+            "MEASURED",
+            45,
+            3.0
+          ],
+          [
+            1787394600000,
+            "MEASURED",
+            45,
+            3.0
+          ],
+          [
+            1787394780000,
+            "MEASURED",
+            44,
+            3.0
           ]
         ]
       },
@@ -489007,6 +489077,22 @@
         {
           "startGMT": "2026-08-22T10:00:00.0",
           "endGMT": "2026-08-22T10:15:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-08-22T10:15:00.0",
+          "endGMT": "2026-08-22T10:30:00.0",
+          "steps": 27,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-08-22T10:30:00.0",
+          "endGMT": "2026-08-22T10:45:00.0",
           "steps": 0,
           "pushes": 0,
           "primaryActivityLevel": "sedentary",
@@ -500656,15 +500742,15 @@
       "endTimeGMT": "2026-08-21 16:08:42",
       "qualifyingDive": false,
       "activityUUID": "4a36baf3-2c67-4793-b930-be91cf41faa0",
-      "pr": false,
+      "decoDive": false,
+      "elevationCorrected": false,
+      "atpActivity": false,
+      "autoCalcCalories": false,
       "favorite": false,
       "purposeful": false,
-      "parent": false,
-      "decoDive": false,
       "manualActivity": false,
-      "autoCalcCalories": false,
-      "elevationCorrected": false,
-      "atpActivity": false
+      "pr": false,
+      "parent": false
     },
     "24068753747": {
       "activityId": 24068753747,
@@ -500886,15 +500972,15 @@
       "endTimeGMT": "2026-08-22 07:43:13",
       "qualifyingDive": false,
       "activityUUID": "ebf1b941-813e-4ebe-b229-ea6147702b59",
-      "pr": false,
+      "decoDive": false,
+      "elevationCorrected": false,
+      "atpActivity": false,
+      "autoCalcCalories": false,
       "favorite": false,
       "purposeful": false,
-      "parent": false,
-      "decoDive": false,
       "manualActivity": false,
-      "autoCalcCalories": false,
-      "elevationCorrected": false,
-      "atpActivity": false
+      "pr": false,
+      "parent": false
     }
   }
 }
