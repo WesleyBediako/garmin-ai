@@ -792,14 +792,32 @@ function estimateCurrentFatMaxKmh(activities, plan, todayStr) {
   };
 }
 
+// VT1 sits between FatMax and VT2 — derive it from the Steady-run efficiency
+// trend, same mechanism as FatMax/VT2 but tied to the zone it actually
+// represents, so the whole aerobic profile moves together instead of VT1
+// being the one number frozen at the 10.08. CPET snapshot.
+function estimateCurrentVT1Kmh(activities, plan, todayStr) {
+  const baselineKmh = 13.0;
+  const trend = computeEfficiencyTrend(activities, plan, todayStr, "steady");
+  if (!trend || trend.insufficientData) {
+    return { vt1Kmh: baselineKmh, source: "CPET 10.08.2026 (noch keine bestätigte Effizienzänderung gemessen)" };
+  }
+  const dampenedPct = (-trend.pctChange * 0.5).toFixed(1);
+  return {
+    vt1Kmh: baselineKmh * (1 + parseFloat(dampenedPct) / 100),
+    source: `Schätzung aus gemessener Steady-Lauf-Effizienz: ${dampenedPct >= 0 ? "+" : ""}${dampenedPct}% ggü. CPET-Baseline`,
+  };
+}
+
 function renderPaceGapGauge(activities, plan, todayStr) {
-  // From CPET (Longevity Center Nürnberg, 10.08.2026): FatMax started at 12.0
-  // km/h, VT1 at 13.0 km/h (VT1 stays fixed for now). FatMax and VT2 are live
-  // estimates that shift right as real efficiency data comes in.
+  // From CPET (Longevity Center Nürnberg, 10.08.2026): FatMax/VT1/VT2 all
+  // started at fixed measurements, but each is now a live estimate that
+  // shifts right as real efficiency data comes in from the matching zone.
   const vt2Estimate = estimateCurrentVT2Kmh(activities, plan, todayStr);
   const fatMaxEstimate = estimateCurrentFatMaxKmh(activities, plan, todayStr);
+  const vt1Estimate = estimateCurrentVT1Kmh(activities, plan, todayStr);
   const fatmax = fatMaxEstimate.fatMaxKmh,
-    vt1 = 13.0,
+    vt1 = vt1Estimate.vt1Kmh,
     vt2 = vt2Estimate.vt2Kmh,
     target = 16.67;
   const minKmh = 10,
@@ -851,7 +869,7 @@ function renderPaceGapGauge(activities, plan, todayStr) {
 
       <line x1="${x(vt1)}" y1="68" x2="${x(vt1)}" y2="112" stroke="#8C96A3" stroke-width="2"/>
       <circle cx="${x(vt1)}" cy="90" r="4" fill="#8C96A3"/>
-      <text x="${x(vt1)}" y="150" text-anchor="middle" font-family="monospace" font-size="11.5" fill="#8C96A3" font-weight="600">VT1 13,0</text>
+      <text x="${x(vt1)}" y="150" text-anchor="middle" font-family="monospace" font-size="11.5" fill="#8C96A3" font-weight="600">VT1 ${vt1.toFixed(1).replace(".", ",")}</text>
 
       <line x1="${x(vt2)}" y1="60" x2="${x(vt2)}" y2="112" stroke="#FF5A45" stroke-width="2.5"/>
       <circle cx="${x(vt2)}" cy="90" r="5" fill="#FF5A45"/>
@@ -867,7 +885,7 @@ function renderPaceGapGauge(activities, plan, todayStr) {
     </svg>
     <div class="gauge-legend">
       <div class="leg-item"><span class="leg-dot" style="background:#2FBFA6"></span>FatMax — Fettstoffwechsel-Obergrenze</div>
-      <div class="leg-item"><span class="leg-dot" style="background:#8C96A3"></span>VT1 — aerobe Schwelle</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#8C96A3"></span>VT1 — aerobe Schwelle, laufende Schätzung aus Steady-Effizienz</div>
       <div class="leg-item"><span class="leg-dot" style="background:#FF5A45"></span>VT2 — laufende Schätzung, verschiebt sich mit jeder Schwelle-Einheit; Threshold-Sessions bleiben knapp darunter, Marathon-Effort darf ab W16 evidenzbasiert darüber hinaus</div>
       <div class="leg-item"><span class="leg-dot" style="border:1.5px dashed #F2B134;background:transparent"></span>Target Marathon Pace (3:36/km) — A-Ziel, wird nicht routinemäßig trainiert</div>
     </div>
@@ -1040,7 +1058,7 @@ function renderCalibrationCheckpoints(plan, todayStr) {
   const checkpoints = [
     { date: "2026-09-20", label: "Kopenhagen Halbmarathon", desc: "Wichtigster Reality-Check vor Valencia. Faustregel: Current Marathon Effort ≈ Kopenhagen-HM-Pace + 25–35 s/km. Die Effort-Paces ab W13 sind vorläufige Schätzungen — nach dem Rennen mit echtem Ergebnis, Perceived Effort und Long-Run-Durability abgleichen, nicht blind der Vorgabe folgen." },
     { date: "2026-09-13", label: "Erste marathonspezifische Einheit", desc: "Long Run mit ersten 8 km @Current Marathon Effort — erste Standortbestimmung vor Kopenhagen." },
-    { date: "2026-11-01", label: "Peak-Marathon-Simulation", desc: "34 km mit 2×8km @Current Marathon Effort, Fueling-Strategie live getestet (75–90 g KH/h)." },
+    { date: "2026-10-25", label: "Peak-Marathon-Simulation", desc: "36 km mit 4×4km @Current Marathon Effort + 4km @Target Pace-Finish, Fueling-Strategie live getestet (75–90 g KH/h). Vorgezogen von W17 wegen Australien-Hinflug (29.10.–1.11.)." },
   ];
   const rows = checkpoints
     .map((c) => {
