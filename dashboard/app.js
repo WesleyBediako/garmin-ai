@@ -775,12 +775,30 @@ function estimateCurrentVT2Kmh(activities, plan, todayStr) {
   return { vt2Kmh, source: `Schätzung aus gemessener Effizienz (${labels.join(", ")}): ${dampenedPct >= 0 ? "+" : ""}${dampenedPct}% ggü. CPET-Baseline, gedämpft übertragen` };
 }
 
+// FatMax should shift right too ("shift FatMax/LTP1 toward faster speeds" is
+// an explicit block goal) — derive it from the Easy-run efficiency trend
+// specifically, since FatMax IS the easy/fat-oxidation zone, rather than the
+// blended cross-category signal used for VT2.
+function estimateCurrentFatMaxKmh(activities, plan, todayStr) {
+  const baselineKmh = 12.0;
+  const trend = computeEfficiencyTrend(activities, plan, todayStr, "easy");
+  if (!trend || trend.insufficientData) {
+    return { fatMaxKmh: baselineKmh, source: "CPET 10.08.2026 (noch keine bestätigte Effizienzänderung gemessen)" };
+  }
+  const dampenedPct = (-trend.pctChange * 0.5).toFixed(1);
+  return {
+    fatMaxKmh: baselineKmh * (1 + parseFloat(dampenedPct) / 100),
+    source: `Schätzung aus gemessener Easy-Lauf-Effizienz: ${dampenedPct >= 0 ? "+" : ""}${dampenedPct}% ggü. CPET-Baseline`,
+  };
+}
+
 function renderPaceGapGauge(activities, plan, todayStr) {
-  // From CPET (Longevity Center Nürnberg, 10.08.2026): FatMax 12.0 km/h, VT1
-  // 13.0 km/h. VT2 is a live estimate (see estimateCurrentVT2Kmh) — starts at
-  // the measured 16.0 km/h and shifts right as real efficiency data comes in.
+  // From CPET (Longevity Center Nürnberg, 10.08.2026): FatMax started at 12.0
+  // km/h, VT1 at 13.0 km/h (VT1 stays fixed for now). FatMax and VT2 are live
+  // estimates that shift right as real efficiency data comes in.
   const vt2Estimate = estimateCurrentVT2Kmh(activities, plan, todayStr);
-  const fatmax = 12.0,
+  const fatMaxEstimate = estimateCurrentFatMaxKmh(activities, plan, todayStr);
+  const fatmax = fatMaxEstimate.fatMaxKmh,
     vt1 = 13.0,
     vt2 = vt2Estimate.vt2Kmh,
     target = 16.67;
@@ -789,6 +807,17 @@ function renderPaceGapGauge(activities, plan, todayStr) {
   const x = (kmh) => 40 + ((kmh - minKmh) / (maxKmh - minKmh)) * 920;
   const gapSec = Math.round(3600 / vt2 - 3600 / target); // seconds/km target is faster than VT2
   const gapLabel = gapSec > 0 ? `+0:${String(gapSec).padStart(2, "0")}/km` : `${gapSec}s/km`;
+
+  // As VT2 climbs (real progress!), it can end up right next to Target on
+  // the axis — center-anchored labels would then overlap. Split them apart
+  // horizontally whenever they'd be closer than ~2 label-widths.
+  const labelGapPx = x(target) - x(vt2);
+  const labelsCollide = labelGapPx < 80;
+  const labelMid = (x(vt2) + x(target)) / 2;
+  const vt2LabelX = labelsCollide ? labelMid - 4 : x(vt2);
+  const vt2Anchor = labelsCollide ? "end" : "middle";
+  const targetLabelX = labelsCollide ? labelMid + 4 : x(target);
+  const targetAnchor = labelsCollide ? "start" : "middle";
 
   return `<section class="panel gauge-panel">
     <div class="hero-top">
@@ -818,7 +847,7 @@ function renderPaceGapGauge(activities, plan, todayStr) {
 
       <line x1="${x(fatmax)}" y1="68" x2="${x(fatmax)}" y2="112" stroke="#2FBFA6" stroke-width="2"/>
       <circle cx="${x(fatmax)}" cy="90" r="4" fill="#2FBFA6"/>
-      <text x="${x(fatmax)}" y="55" text-anchor="middle" font-family="monospace" font-size="11.5" fill="#2FBFA6" font-weight="600">FatMax 12,0</text>
+      <text x="${x(fatmax)}" y="55" text-anchor="middle" font-family="monospace" font-size="11.5" fill="#2FBFA6" font-weight="600">FatMax ${fatmax.toFixed(1).replace(".", ",")}</text>
 
       <line x1="${x(vt1)}" y1="68" x2="${x(vt1)}" y2="112" stroke="#8C96A3" stroke-width="2"/>
       <circle cx="${x(vt1)}" cy="90" r="4" fill="#8C96A3"/>
@@ -826,12 +855,12 @@ function renderPaceGapGauge(activities, plan, todayStr) {
 
       <line x1="${x(vt2)}" y1="60" x2="${x(vt2)}" y2="112" stroke="#FF5A45" stroke-width="2.5"/>
       <circle cx="${x(vt2)}" cy="90" r="5" fill="#FF5A45"/>
-      <text x="${x(vt2)}" y="48" text-anchor="middle" font-family="monospace" font-size="12.5" fill="#FF5A45" font-weight="700">VT2 ${vt2.toFixed(1).replace(".", ",")}</text>
+      <text x="${vt2LabelX}" y="48" text-anchor="${vt2Anchor}" font-family="monospace" font-size="12.5" fill="#FF5A45" font-weight="700">VT2 ${vt2.toFixed(1).replace(".", ",")}</text>
       <text x="${x(vt2)}" y="165" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#FF5A45">aktuelle Schätzung</text>
 
       <line x1="${x(target)}" y1="60" x2="${x(target)}" y2="112" stroke="#F2B134" stroke-width="2.5" stroke-dasharray="3,3"/>
       <circle cx="${x(target)}" cy="90" r="5" fill="#F2B134"/>
-      <text x="${x(target)}" y="48" text-anchor="middle" font-family="monospace" font-size="12.5" fill="#F2B134" font-weight="700">Target 16,7</text>
+      <text x="${targetLabelX}" y="48" text-anchor="${targetAnchor}" font-family="monospace" font-size="12.5" fill="#F2B134" font-weight="700">Target 16,7</text>
 
       <path d="M ${x(vt2)} 30 L ${x(vt2)} 22 L ${x(target)} 22 L ${x(target)} 30" fill="none" stroke="#F2B134" stroke-width="1.5"/>
       <text x="${(x(vt2) + x(target)) / 2}" y="16" text-anchor="middle" font-family="monospace" font-size="11" fill="#F2B134">aspirativ, nicht Trainingsziel</text>
