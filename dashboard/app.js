@@ -1259,7 +1259,50 @@ function withLiveThresholdPace(session, vt2Kmh, todayStr) {
   return Object.assign({}, session, { detail: newDetail, note: newNote, _liveThresholdPace: true });
 }
 
-function renderWeekAccordion(weekLabel, sessions, activities, todayStr, adjustments, isCurrent, liveVT2Kmh) {
+// Same re-anchoring idea as Threshold, for the other three CPET-derived
+// zones: Easy/Long-run paces are authored around the FatMax baseline
+// (12.0 km/h · 5:00/km), Steady paces around the VT1 baseline (13.0 km/h ·
+// ~4:37/km). Each mention is tagged by the word right before its
+// parenthesis ("locker"/"Easy"/"FatMax" → FatMax, "Steady" → VT1), so a
+// single Long Run line that mixes both (e.g. "Letzte 6 km Steady (...),
+// Rest locker (...)") re-anchors each half to the right zone.
+const FATMAX_PACE_BASELINE_SEC = 3600 / 12.0;
+const VT1_PACE_BASELINE_SEC = 3600 / 13.0;
+const AEROBIC_PACE_MENTION_PATTERN = /(\w+)\s*\((~?)(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})\s*\/\s*km\)/g;
+
+function withLiveAerobicPace(session, fatMaxKmh, vt1Kmh, todayStr) {
+  if (!["EASY", "STEADY", "LONG"].includes(session.type)) return session;
+  if (session.date <= todayStr || !session.detail) return session;
+  const fatMaxSecPerKm = 3600 / fatMaxKmh;
+  const vt1SecPerKm = 3600 / vt1Kmh;
+  let changed = false;
+  const newDetail = session.detail.replace(
+    AEROBIC_PACE_MENTION_PATTERN,
+    (match, keyword, tilde, m1, s1, m2, s2) => {
+      const kw = keyword.toLowerCase();
+      let baselineSec, liveSec;
+      if (kw === "steady") {
+        baselineSec = VT1_PACE_BASELINE_SEC;
+        liveSec = vt1SecPerKm;
+      } else if (kw === "locker" || kw === "easy" || kw === "fatmax") {
+        baselineSec = FATMAX_PACE_BASELINE_SEC;
+        liveSec = fatMaxSecPerKm;
+      } else {
+        return match;
+      }
+      const firstSec = parseInt(m1, 10) * 60 + parseInt(s1, 10);
+      const secondSec = parseInt(m2, 10) * 60 + parseInt(s2, 10);
+      const newFirst = liveSec + (firstSec - baselineSec);
+      const newSecond = liveSec + (secondSec - baselineSec);
+      changed = true;
+      return `${keyword} (${tilde}${secPerKmToPaceStr(newFirst)}–${secPerKmToPaceStr(newSecond)}/km)`;
+    }
+  );
+  if (!changed) return session;
+  return Object.assign({}, session, { detail: newDetail, _liveAerobicPace: true });
+}
+
+function renderWeekAccordion(weekLabel, sessions, activities, todayStr, adjustments, isCurrent, liveVT2Kmh, liveFatMaxKmh, liveVT1Kmh) {
   const sorted = sessions.slice().sort((a, b) => a.date.localeCompare(b.date));
   const first = sorted[0];
   const last = sorted[sorted.length - 1];
@@ -1270,7 +1313,8 @@ function renderWeekAccordion(weekLabel, sessions, activities, todayStr, adjustme
 
   const rows = sorted
     .map((sRaw) => {
-      const s = liveVT2Kmh ? withLiveThresholdPace(sRaw, liveVT2Kmh, todayStr) : sRaw;
+      let s = liveVT2Kmh ? withLiveThresholdPace(sRaw, liveVT2Kmh, todayStr) : sRaw;
+      if (liveFatMaxKmh && liveVT1Kmh) s = withLiveAerobicPace(s, liveFatMaxKmh, liveVT1Kmh, todayStr);
       const status = sessionStatus(s, activities, todayStr);
       const mainText = withZonePace(s.title_and_target + (s.detail ? ` — ${s.detail}` : ""));
       let html;
@@ -1285,6 +1329,9 @@ function renderWeekAccordion(weekLabel, sessions, activities, todayStr, adjustme
       }
       if (s._liveThresholdPace) {
         html += `<div style="font-size:0.72rem;color:var(--aerobic);margin-top:2px">↳ Pace live an aktuelle VT2-Schätzung angepasst</div>`;
+      }
+      if (s._liveAerobicPace) {
+        html += `<div style="font-size:0.72rem;color:var(--aerobic);margin-top:2px">↳ Pace live an aktuelle FatMax/VT1-Schätzung angepasst</div>`;
       }
       const restGuidance = inferRestGuidance(s);
       if (restGuidance) {
@@ -1322,11 +1369,13 @@ function renderTrainingPlanFull(plan, activities, todayStr, adjustments) {
     return `<section class="panel"><div class="panel-head"><div class="panel-title">Trainingsplan</div></div><p class="empty">Kein Trainingsplan geladen</p></section>`;
   }
 
-  // Threshold rep paces for upcoming sessions track the SAME live VT2
-  // estimate shown on the gauge, instead of the fixed pace I originally
-  // hand-wrote for each week — otherwise "controlled, just under VT2" would
-  // silently go stale as VT2 itself moves.
+  // Prescribed paces for upcoming sessions track the SAME live zone
+  // estimates shown on the gauge, instead of the fixed paces I originally
+  // hand-wrote per week — otherwise the whole plan would quietly go stale
+  // as fitness (and the gauge) moves right.
   const liveVT2Kmh = estimateCurrentVT2Kmh(activities, plan, todayStr).vt2Kmh;
+  const liveFatMaxKmh = estimateCurrentFatMaxKmh(activities, plan, todayStr).fatMaxKmh;
+  const liveVT1Kmh = estimateCurrentVT1Kmh(activities, plan, todayStr).vt1Kmh;
 
   const weekMap = {};
   plan.sessions.forEach((s) => {
@@ -1350,7 +1399,9 @@ function renderTrainingPlanFull(plan, activities, todayStr, adjustments) {
   const panelsHtml = phaseOrder
     .map((p) => {
       const weeksInPhase = weekLabels.filter((w) => getPhaseKey(weekMap[w][0].block) === p);
-      const weeksHtml = weeksInPhase.map((w) => renderWeekAccordion(w, weekMap[w], activities, todayStr, adjustments, w === currentWeek, liveVT2Kmh)).join("");
+      const weeksHtml = weeksInPhase
+        .map((w) => renderWeekAccordion(w, weekMap[w], activities, todayStr, adjustments, w === currentWeek, liveVT2Kmh, liveFatMaxKmh, liveVT1Kmh))
+        .join("");
       return `<div class="phase-panel${p === currentPhase ? " active" : ""}" id="${p}-panel">
         <div class="phase-intro">${PHASE_INTROS[p]}</div>
         <div class="week-list">${weeksHtml}</div>
