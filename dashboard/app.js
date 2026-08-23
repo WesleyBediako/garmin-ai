@@ -1208,7 +1208,58 @@ function withZonePace(text) {
   return text.replace(/\((Z1–Z2|Z2|Z3|Z4)\)/, (m, zone) => `(${zone} · ${ZONE_PACE[zone]})`);
 }
 
-function renderWeekAccordion(weekLabel, sessions, activities, todayStr, adjustments, isCurrent) {
+function secPerKmToPaceStr(sec) {
+  const rounded = Math.round(sec);
+  const m = Math.floor(rounded / 60);
+  const r = rounded % 60;
+  return `${m}:${String(r).padStart(2, "0")}`;
+}
+
+// CPET baseline VT2 (10.08.2026): 3:45/km. Each Schwelle session's authored
+// pace band is really "so many seconds slower than true VT2, for control
+// margin" — e.g. "@4:05–3:55/km" is +20s/+10s off the baseline. To let the
+// prescribed pace shift with the live, efficiency-derived VT2 estimate (not
+// just the gauge) instead of quietly going stale, we keep each session's own
+// buffer but re-anchor it to the live VT2 pace. Past sessions are left alone
+// — they're a historical record, not a forecast.
+const THRESHOLD_PACE_BASELINE_SEC = 3 * 60 + 45;
+const THRESHOLD_PACE_PATTERN = /(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})\s*\/\s*km/g;
+const THRESHOLD_VT2_MENTION_PATTERN = /VT2\s*\((\d{1,2}):(\d{2})\/km\)/g;
+
+function withLiveThresholdPace(session, vt2Kmh, todayStr) {
+  if (session.type !== "SCHWELLE") return session;
+  if (session.date <= todayStr) return session;
+  const vt2SecPerKm = 3600 / vt2Kmh;
+  let changed = false;
+
+  let newDetail = session.detail;
+  if (newDetail) {
+    newDetail = newDetail.replace(THRESHOLD_PACE_PATTERN, (match, m1, s1, m2, s2) => {
+      const firstSec = parseInt(m1, 10) * 60 + parseInt(s1, 10);
+      const secondSec = parseInt(m2, 10) * 60 + parseInt(s2, 10);
+      const newFirst = vt2SecPerKm + (firstSec - THRESHOLD_PACE_BASELINE_SEC);
+      const newSecond = vt2SecPerKm + (secondSec - THRESHOLD_PACE_BASELINE_SEC);
+      changed = true;
+      return `${secPerKmToPaceStr(newFirst)}–${secPerKmToPaceStr(newSecond)}/km`;
+    });
+  }
+
+  // Some notes spell VT2's pace out in prose ("nicht schneller als VT2
+  // (3:45/km)") — same staleness risk, so the mention gets the live VT2
+  // pace too, not just the rep pace band above.
+  let newNote = session.note;
+  if (newNote) {
+    newNote = newNote.replace(THRESHOLD_VT2_MENTION_PATTERN, () => {
+      changed = true;
+      return `VT2 (${secPerKmToPaceStr(vt2SecPerKm)}/km)`;
+    });
+  }
+
+  if (!changed) return session;
+  return Object.assign({}, session, { detail: newDetail, note: newNote, _liveThresholdPace: true });
+}
+
+function renderWeekAccordion(weekLabel, sessions, activities, todayStr, adjustments, isCurrent, liveVT2Kmh) {
   const sorted = sessions.slice().sort((a, b) => a.date.localeCompare(b.date));
   const first = sorted[0];
   const last = sorted[sorted.length - 1];
@@ -1218,7 +1269,8 @@ function renderWeekAccordion(weekLabel, sessions, activities, todayStr, adjustme
   const focus = (first.block || "").split("·").pop().trim();
 
   const rows = sorted
-    .map((s) => {
+    .map((sRaw) => {
+      const s = liveVT2Kmh ? withLiveThresholdPace(sRaw, liveVT2Kmh, todayStr) : sRaw;
       const status = sessionStatus(s, activities, todayStr);
       const mainText = withZonePace(s.title_and_target + (s.detail ? ` — ${s.detail}` : ""));
       let html;
@@ -1230,6 +1282,9 @@ function renderWeekAccordion(weekLabel, sessions, activities, todayStr, adjustme
       } else {
         html = mainText;
         if (s.note) html += `<div style="font-size:0.72rem;color:var(--muted);margin-top:2px">${s.note}</div>`;
+      }
+      if (s._liveThresholdPace) {
+        html += `<div style="font-size:0.72rem;color:var(--aerobic);margin-top:2px">↳ Pace live an aktuelle VT2-Schätzung angepasst</div>`;
       }
       const restGuidance = inferRestGuidance(s);
       if (restGuidance) {
@@ -1267,6 +1322,12 @@ function renderTrainingPlanFull(plan, activities, todayStr, adjustments) {
     return `<section class="panel"><div class="panel-head"><div class="panel-title">Trainingsplan</div></div><p class="empty">Kein Trainingsplan geladen</p></section>`;
   }
 
+  // Threshold rep paces for upcoming sessions track the SAME live VT2
+  // estimate shown on the gauge, instead of the fixed pace I originally
+  // hand-wrote for each week — otherwise "controlled, just under VT2" would
+  // silently go stale as VT2 itself moves.
+  const liveVT2Kmh = estimateCurrentVT2Kmh(activities, plan, todayStr).vt2Kmh;
+
   const weekMap = {};
   plan.sessions.forEach((s) => {
     if (!weekMap[s.week]) weekMap[s.week] = [];
@@ -1289,7 +1350,7 @@ function renderTrainingPlanFull(plan, activities, todayStr, adjustments) {
   const panelsHtml = phaseOrder
     .map((p) => {
       const weeksInPhase = weekLabels.filter((w) => getPhaseKey(weekMap[w][0].block) === p);
-      const weeksHtml = weeksInPhase.map((w) => renderWeekAccordion(w, weekMap[w], activities, todayStr, adjustments, w === currentWeek)).join("");
+      const weeksHtml = weeksInPhase.map((w) => renderWeekAccordion(w, weekMap[w], activities, todayStr, adjustments, w === currentWeek, liveVT2Kmh)).join("");
       return `<div class="phase-panel${p === currentPhase ? " active" : ""}" id="${p}-panel">
         <div class="phase-intro">${PHASE_INTROS[p]}</div>
         <div class="week-list">${weeksHtml}</div>
