@@ -181,9 +181,12 @@ function parsePaceRangeSecPerKm(text) {
   if (!text) return null;
   const m = text.match(/(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})\s*\/?\s*km/);
   if (!m) return null;
-  const fast = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
-  const slow = parseInt(m[3], 10) * 60 + parseInt(m[4], 10);
-  return { fast, slow };
+  const a = parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+  const b = parseInt(m[3], 10) * 60 + parseInt(m[4], 10);
+  // Written order isn't consistent across the plan (easy-run ranges go
+  // fast-first e.g. "4:35–5:00", threshold ranges go slow-first e.g.
+  // "4:05–3:55") — always resolve to the true fast/slow regardless of order.
+  return { fast: Math.min(a, b), slow: Math.max(a, b) };
 }
 
 function fmtPace(secPerKm) {
@@ -744,12 +747,42 @@ function renderPageHeader(plan, dates, activityCount) {
   </header>`;
 }
 
-function renderPaceGapGauge() {
-  // From CPET (Longevity Center Nürnberg, 10.08.2026): FatMax 12.0 km/h,
-  // VT1 13.0 km/h, VT2/RCP 16.0 km/h. Target marathon pace 3:36/km = 16.67 km/h.
+// VT2 isn't frozen at the 10.08. CPET number for the whole block — months of
+// threshold training should shift it faster, same as FatMax/Steady already
+// do. Deriving it from the prescribed Threshold rep paces doesn't work: reps
+// are deliberately run with reserve (control > pace), so they'd always look
+// slower than true VT2 early on. Instead, use the SAME real efficiency-trend
+// data (HR-per-speed, recent vs. prior window) already surfacing as insights
+// — a genuine measured signal, dampened 50% since HR-efficiency on easy/long
+// runs doesn't map 1:1 onto a lactate-threshold shift.
+function estimateCurrentVT2Kmh(activities, plan, todayStr) {
+  const baselineKmh = 3600 / (3 * 60 + 45);
+  const changes = [];
+  const labels = [];
+  for (const category of Object.keys(EFFICIENCY_CATEGORIES)) {
+    const trend = computeEfficiencyTrend(activities, plan, todayStr, category);
+    if (trend && !trend.insufficientData) {
+      changes.push(trend.pctChange);
+      labels.push(EFFICIENCY_CATEGORIES[category].label);
+    }
+  }
+  if (!changes.length) {
+    return { vt2Kmh: baselineKmh, source: "CPET 10.08.2026 (noch keine bestätigte Effizienzänderung gemessen)" };
+  }
+  const avgChange = changes.reduce((a, b) => a + b, 0) / changes.length; // negative = improving
+  const dampenedPct = (-avgChange * 0.5).toFixed(1);
+  const vt2Kmh = baselineKmh * (1 + parseFloat(dampenedPct) / 100);
+  return { vt2Kmh, source: `Schätzung aus gemessener Effizienz (${labels.join(", ")}): ${dampenedPct >= 0 ? "+" : ""}${dampenedPct}% ggü. CPET-Baseline, gedämpft übertragen` };
+}
+
+function renderPaceGapGauge(activities, plan, todayStr) {
+  // From CPET (Longevity Center Nürnberg, 10.08.2026): FatMax 12.0 km/h, VT1
+  // 13.0 km/h. VT2 is a live estimate (see estimateCurrentVT2Kmh) — starts at
+  // the measured 16.0 km/h and shifts right as real efficiency data comes in.
+  const vt2Estimate = estimateCurrentVT2Kmh(activities, plan, todayStr);
   const fatmax = 12.0,
     vt1 = 13.0,
-    vt2 = 16.0,
+    vt2 = vt2Estimate.vt2Kmh,
     target = 16.67;
   const minKmh = 10,
     maxKmh = 18;
@@ -760,12 +793,12 @@ function renderPaceGapGauge() {
   return `<section class="panel gauge-panel">
     <div class="hero-top">
       <div>
-        <div class="hero-title">Target Marathon Pace vs. gemessenes VT2</div>
-        <div class="hero-sub">Aus der Spiroergometrie vom 10.08.2026. 3:36/km ist das <strong>aspirative A-Ziel-Tempo</strong> (2:32–2:34) — am 10.08. noch schneller als die gemessene Schwelle. Threshold-Sessions bleiben den ganzen Block unter VT2 (das ist per Definition kontrollierte Schwellenarbeit). Die "Current Marathon Effort"-Pace in den Long Runs darf aber ab W16 über die alte VT2-Marke hinaus Richtung Zielpace weiterentwickeln, sobald Kopenhagen und die Blöcke das bestätigen — echte Schwellenverschiebung statt eines fixen Deckels.</div>
+        <div class="hero-title">Target Marathon Pace vs. aktuell geschätztes VT2</div>
+        <div class="hero-sub">VT2 startete bei 3:45/km (Spiroergometrie 10.08.2026), ist aber <strong>kein fixer Deckel für den ganzen Block</strong> — die Schätzung hier bewegt sich automatisch mit den gemessenen Effizienz-Trends aus deinen echten Läufen (${vt2Estimate.source}). Kopenhagen (20.09.) liefert zusätzlich einen echten Renn-Datenpunkt zur Rekalibrierung. 3:36/km bleibt das <strong>aspirative A-Ziel-Tempo</strong> (2:32–2:34).</div>
       </div>
       <div class="gap-readout">
         <div class="num">${gapLabel}</div>
-        <div class="lbl">Target-Pace schneller als VT2 (Stand 10.08.)</div>
+        <div class="lbl">Target-Pace schneller als aktuelles VT2</div>
       </div>
     </div>
     <svg class="gauge-svg" viewBox="0 0 1000 170" xmlns="http://www.w3.org/2000/svg">
@@ -793,8 +826,8 @@ function renderPaceGapGauge() {
 
       <line x1="${x(vt2)}" y1="60" x2="${x(vt2)}" y2="112" stroke="#FF5A45" stroke-width="2.5"/>
       <circle cx="${x(vt2)}" cy="90" r="5" fill="#FF5A45"/>
-      <text x="${x(vt2)}" y="48" text-anchor="middle" font-family="monospace" font-size="12.5" fill="#FF5A45" font-weight="700">VT2 16,0</text>
-      <text x="${x(vt2)}" y="165" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#FF5A45">Threshold-Deckel (dauerhaft)</text>
+      <text x="${x(vt2)}" y="48" text-anchor="middle" font-family="monospace" font-size="12.5" fill="#FF5A45" font-weight="700">VT2 ${vt2.toFixed(1).replace(".", ",")}</text>
+      <text x="${x(vt2)}" y="165" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#FF5A45">aktuelle Schätzung</text>
 
       <line x1="${x(target)}" y1="60" x2="${x(target)}" y2="112" stroke="#F2B134" stroke-width="2.5" stroke-dasharray="3,3"/>
       <circle cx="${x(target)}" cy="90" r="5" fill="#F2B134"/>
@@ -806,7 +839,7 @@ function renderPaceGapGauge() {
     <div class="gauge-legend">
       <div class="leg-item"><span class="leg-dot" style="background:#2FBFA6"></span>FatMax — Fettstoffwechsel-Obergrenze</div>
       <div class="leg-item"><span class="leg-dot" style="background:#8C96A3"></span>VT1 — aerobe Schwelle</div>
-      <div class="leg-item"><span class="leg-dot" style="background:#FF5A45"></span>VT2 — Deckel für Threshold-Sessions (dauerhaft); Marathon-Effort darf ab W16 evidenzbasiert darüber hinaus</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#FF5A45"></span>VT2 — laufende Schätzung, verschiebt sich mit jeder Schwelle-Einheit; Threshold-Sessions bleiben knapp darunter, Marathon-Effort darf ab W16 evidenzbasiert darüber hinaus</div>
       <div class="leg-item"><span class="leg-dot" style="border:1.5px dashed #F2B134;background:transparent"></span>Target Marathon Pace (3:36/km) — A-Ziel, wird nicht routinemäßig trainiert</div>
     </div>
   </section>`;
@@ -1304,7 +1337,7 @@ async function main() {
   app.innerHTML =
     renderPageHeader(plan, dates, Object.keys(activities).length) +
     `<div class="wrap">` +
-    renderPaceGapGauge() +
+    renderPaceGapGauge(activities, plan, todayStr) +
     renderCalibrationCheckpoints(plan, todayStr) +
     renderCoachTip(coachTip) +
     renderWeekStats(weeklyStats, currentWeekLabel) +
