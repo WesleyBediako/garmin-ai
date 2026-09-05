@@ -809,42 +809,13 @@ function estimateCurrentVT1Kmh(activities, plan, todayStr) {
   };
 }
 
-// Retroactively replays the same live estimate functions at weekly
-// checkpoints since the CPET test, so the trend is a real recomputation from
-// historical data each time — not a snapshot log we'd have to persist
-// ourselves. Each checkpoint only "sees" activities up to that date, since
-// computeEfficiencyTrend already bounds its windows by the todayStr it's
-// given.
-function computeZoneTrendSeries(activities, plan, todayStr) {
-  const cpetDate = "2026-08-10";
-  const checkpoints = [];
-  let d = cpetDate;
-  while (d < todayStr) {
-    checkpoints.push(d);
-    d = addDays(d, 7);
-  }
-  checkpoints.push(todayStr);
-
-  const fatMax = [];
-  const vt1 = [];
-  const vt2 = [];
-  checkpoints.forEach((cp) => {
-    fatMax.push({ label: cp, value: estimateCurrentFatMaxKmh(activities, plan, cp).fatMaxKmh });
-    vt1.push({ label: cp, value: estimateCurrentVT1Kmh(activities, plan, cp).vt1Kmh });
-    vt2.push({ label: cp, value: estimateCurrentVT2Kmh(activities, plan, cp).vt2Kmh });
-  });
-  return { fatMax, vt1, vt2 };
-}
-
-// Shared direction call for both the zone series (bigger km/h = better) and
-// the raw efficiency trends (more negative % = better) — pass isEfficiency
-// to flip which sign counts as improvement.
-function classifyDirection(pctChange, isEfficiency) {
-  if (pctChange == null) return { label: "Noch nicht genug Daten", tone: "na", arrow: "–" };
-  const signed = isEfficiency ? -pctChange : pctChange;
-  if (signed >= 1.5) return { label: "Aufwärts", tone: "good", arrow: "↗" };
-  if (signed <= -1.5) return { label: "Rückläufig", tone: "warn", arrow: "↘" };
-  return { label: "Stagniert", tone: "neutral", arrow: "→" };
+// Classifies a raw efficiency pctChange (negative = improving, since it's
+// HF cost per speed) into a direction the user can scan at a glance.
+function classifyDirection(pctChange) {
+  if (pctChange == null) return { label: "Noch nicht genug Daten", tone: "na" };
+  if (pctChange <= -1.5) return { label: "Aufwärts", tone: "good" };
+  if (pctChange >= 1.5) return { label: "Rückläufig", tone: "warn" };
+  return { label: "Stagniert", tone: "neutral" };
 }
 
 const TREND_DIRECTION_BADGE = {
@@ -854,55 +825,57 @@ const TREND_DIRECTION_BADGE = {
   na: '<span class="badge na">Noch nicht genug Daten</span>',
 };
 
-function seriesPctChange(series) {
-  const valid = series.filter((p) => p.value != null);
-  if (valid.length < 2) return null;
-  const first = valid[0].value;
-  const last = valid[valid.length - 1].value;
-  return ((last - first) / first) * 100;
+// One-line synthesis across all four categories, so you don't have to
+// mentally combine four separate badges yourself.
+function summarizeTrendDirections(rows) {
+  const byTone = { good: [], warn: [], neutral: [], na: [] };
+  rows.forEach((r) => byTone[r.tone].push(r.label));
+
+  if (byTone.warn.length) {
+    return `Achtung: ${byTone.warn.join(" und ")} zeigen gerade einen rückläufigen Trend — nicht ignorieren, auf Erholung und Fueling achten.`;
+  }
+  if (byTone.good.length) {
+    const rest = [];
+    if (byTone.neutral.length) rest.push(`${byTone.neutral.join(" und ")} stagnieren`);
+    if (byTone.na.length) rest.push(`für ${byTone.na.join(" und ")} fehlt noch genug Historie`);
+    return `Insgesamt leichter Aufwärtstrend: ${byTone.good.join(" und ")} zeigen eine bestätigte Verbesserung${rest.length ? ", " + rest.join(", ") : ""}.`;
+  }
+  if (byTone.neutral.length && !byTone.na.length) {
+    return "Insgesamt stabil — keine Kategorie zeigt aktuell eine klare Verbesserung oder Verschlechterung.";
+  }
+  return "Noch keine verlässliche Trendaussage möglich — dafür fehlt in den meisten Kategorien noch genug Vergleichshistorie.";
 }
 
 function renderTrendForecast(activities, plan, todayStr) {
-  const series = computeZoneTrendSeries(activities, plan, todayStr);
-
-  const zoneCard = (title, points, unitLabel) => {
-    const pct = seriesPctChange(points);
-    const dir = classifyDirection(pct, false);
-    const latest = points[points.length - 1]?.value;
-    const valueHtml = `${latest != null ? latest.toFixed(1) : "–"}<span class="unit inline"> ${unitLabel}</span> ${TREND_DIRECTION_BADGE[dir.tone]}`;
-    return statCard(title, valueHtml, lineChartSVG(points, COLORS.volume));
-  };
-
-  const categoryRow = (category) => {
+  const rows = Object.keys(EFFICIENCY_CATEGORIES).map((category) => {
     const cfg = EFFICIENCY_CATEGORIES[category];
     const trend = computeEfficiencyTrend(activities, plan, todayStr, category);
-    const dir = classifyDirection(trend.insufficientData ? null : trend.pctChange, true);
+    const dir = classifyDirection(trend.insufficientData ? null : trend.pctChange);
     const detail = trend.insufficientData
       ? trend.recentCount < cfg.minSamples
         ? `Erst ${trend.recentCount} von ${cfg.minSamples} nötigen Einheiten im aktuellen Fenster`
         : `${trend.recentCount} Einheiten aktuell, aber erst ${trend.priorCount} von ${cfg.minSamples} nötigen Einheiten im Vergleichszeitraum davor — noch keine Trendbasis`
       : `${Math.abs(trend.pctChange).toFixed(1)}% ${trend.pctChange < 0 ? "weniger" : "mehr"} HF-Kosten pro Tempo (${trend.recentCount} vs. ${trend.priorCount} Einheiten)`;
-    return `<div class="day-row">
-      <div class="dd">${cfg.label}</div>
-      <div class="ds">${detail}</div>
-      <div>${TREND_DIRECTION_BADGE[dir.tone]}</div>
-    </div>`;
-  };
+    return { label: cfg.label, tone: dir.tone, detail };
+  });
+
+  const rowsHtml = rows
+    .map(
+      (r) => `<div class="day-row">
+      <div class="dd">${r.label}</div>
+      <div class="ds">${r.detail}</div>
+      <div>${TREND_DIRECTION_BADGE[r.tone]}</div>
+    </div>`
+    )
+    .join("");
 
   return `<section class="panel">
     <div class="panel-head">
       <div class="panel-title">Trend-Forecast</div>
       <div class="panel-note">automatisch berechnet, keine Ferndiagnose</div>
     </div>
-    <div class="grid charts">
-      ${zoneCard("FatMax-Schätzung", series.fatMax, "km/h")}
-      ${zoneCard("VT1-Schätzung", series.vt1, "km/h")}
-      ${zoneCard("VT2-Schätzung", series.vt2, "km/h")}
-    </div>
-    <div style="margin-top:18px">
-      <div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:8px">Aktueller Trend je Session-Kategorie</div>
-      ${Object.keys(EFFICIENCY_CATEGORIES).map(categoryRow).join("")}
-    </div>
+    <p style="margin:0 0 14px">${summarizeTrendDirections(rows)}</p>
+    ${rowsHtml}
   </section>`;
 }
 
