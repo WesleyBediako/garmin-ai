@@ -638830,7 +638830,39 @@
           "activityLevelConstant": true
         }
       ],
-      "training_readiness": []
+      "training_readiness": [
+        {
+          "userProfilePK": 104409518,
+          "calendarDate": "2026-09-05",
+          "timestamp": "2026-09-05T02:23:15.0",
+          "timestampLocal": "2026-09-05T04:23:15.0",
+          "deviceId": 3471323853,
+          "level": "MODERATE",
+          "feedbackLong": "MOD_RT_HIGH_SS_UNKNOWN",
+          "feedbackShort": "HIGH_RECOVERY_NEEDS",
+          "score": 50,
+          "sleepScore": null,
+          "sleepScoreFactorPercent": 0,
+          "sleepScoreFactorFeedback": "NONE",
+          "recoveryTime": 2413,
+          "recoveryTimeFactorPercent": 37,
+          "recoveryTimeFactorFeedback": "POOR",
+          "acwrFactorPercent": 96,
+          "acwrFactorFeedback": "GOOD",
+          "acuteLoad": 748,
+          "stressHistoryFactorPercent": 0,
+          "stressHistoryFactorFeedback": "NONE",
+          "hrvFactorPercent": 96,
+          "hrvFactorFeedback": "GOOD",
+          "hrvWeeklyAverage": 63,
+          "sleepHistoryFactorPercent": 0,
+          "sleepHistoryFactorFeedback": "NONE",
+          "validSleep": false,
+          "inputContext": "UPDATE_REALTIME_VARIABLES",
+          "primaryActivityTracker": true,
+          "recoveryTimeChangePhrase": null
+        }
+      ]
     }
   },
   "activities": {
@@ -654825,15 +654857,15 @@
       "endTimeGMT": "2026-09-04 17:27:33",
       "qualifyingDive": false,
       "activityUUID": "9e0f6d3a-5d9e-4d2f-84c6-ad63bc7d99de",
-      "pr": false,
-      "favorite": false,
       "purposeful": false,
+      "manualActivity": false,
+      "pr": false,
       "parent": false,
       "decoDive": false,
-      "manualActivity": false,
-      "autoCalcCalories": false,
       "elevationCorrected": false,
-      "atpActivity": false
+      "atpActivity": false,
+      "autoCalcCalories": false,
+      "favorite": false
     }
   }
 }
