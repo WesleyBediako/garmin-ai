@@ -809,6 +809,103 @@ function estimateCurrentVT1Kmh(activities, plan, todayStr) {
   };
 }
 
+// Retroactively replays the same live estimate functions at weekly
+// checkpoints since the CPET test, so the trend is a real recomputation from
+// historical data each time — not a snapshot log we'd have to persist
+// ourselves. Each checkpoint only "sees" activities up to that date, since
+// computeEfficiencyTrend already bounds its windows by the todayStr it's
+// given.
+function computeZoneTrendSeries(activities, plan, todayStr) {
+  const cpetDate = "2026-08-10";
+  const checkpoints = [];
+  let d = cpetDate;
+  while (d < todayStr) {
+    checkpoints.push(d);
+    d = addDays(d, 7);
+  }
+  checkpoints.push(todayStr);
+
+  const fatMax = [];
+  const vt1 = [];
+  const vt2 = [];
+  checkpoints.forEach((cp) => {
+    fatMax.push({ label: cp, value: estimateCurrentFatMaxKmh(activities, plan, cp).fatMaxKmh });
+    vt1.push({ label: cp, value: estimateCurrentVT1Kmh(activities, plan, cp).vt1Kmh });
+    vt2.push({ label: cp, value: estimateCurrentVT2Kmh(activities, plan, cp).vt2Kmh });
+  });
+  return { fatMax, vt1, vt2 };
+}
+
+// Shared direction call for both the zone series (bigger km/h = better) and
+// the raw efficiency trends (more negative % = better) — pass isEfficiency
+// to flip which sign counts as improvement.
+function classifyDirection(pctChange, isEfficiency) {
+  if (pctChange == null) return { label: "Noch nicht genug Daten", tone: "na", arrow: "–" };
+  const signed = isEfficiency ? -pctChange : pctChange;
+  if (signed >= 1.5) return { label: "Aufwärts", tone: "good", arrow: "↗" };
+  if (signed <= -1.5) return { label: "Rückläufig", tone: "warn", arrow: "↘" };
+  return { label: "Stagniert", tone: "neutral", arrow: "→" };
+}
+
+const TREND_DIRECTION_BADGE = {
+  good: '<span class="badge good">↗ Aufwärts</span>',
+  warn: '<span class="badge poor">↘ Rückläufig</span>',
+  neutral: '<span class="badge moderate">→ Stagniert</span>',
+  na: '<span class="badge na">Noch nicht genug Daten</span>',
+};
+
+function seriesPctChange(series) {
+  const valid = series.filter((p) => p.value != null);
+  if (valid.length < 2) return null;
+  const first = valid[0].value;
+  const last = valid[valid.length - 1].value;
+  return ((last - first) / first) * 100;
+}
+
+function renderTrendForecast(activities, plan, todayStr) {
+  const series = computeZoneTrendSeries(activities, plan, todayStr);
+
+  const zoneCard = (title, points, unitLabel) => {
+    const pct = seriesPctChange(points);
+    const dir = classifyDirection(pct, false);
+    const latest = points[points.length - 1]?.value;
+    const valueHtml = `${latest != null ? latest.toFixed(1) : "–"}<span class="unit inline"> ${unitLabel}</span> ${TREND_DIRECTION_BADGE[dir.tone]}`;
+    return statCard(title, valueHtml, lineChartSVG(points, COLORS.volume));
+  };
+
+  const categoryRow = (category) => {
+    const cfg = EFFICIENCY_CATEGORIES[category];
+    const trend = computeEfficiencyTrend(activities, plan, todayStr, category);
+    const dir = classifyDirection(trend.insufficientData ? null : trend.pctChange, true);
+    const detail = trend.insufficientData
+      ? trend.recentCount < cfg.minSamples
+        ? `Erst ${trend.recentCount} von ${cfg.minSamples} nötigen Einheiten im aktuellen Fenster`
+        : `${trend.recentCount} Einheiten aktuell, aber erst ${trend.priorCount} von ${cfg.minSamples} nötigen Einheiten im Vergleichszeitraum davor — noch keine Trendbasis`
+      : `${Math.abs(trend.pctChange).toFixed(1)}% ${trend.pctChange < 0 ? "weniger" : "mehr"} HF-Kosten pro Tempo (${trend.recentCount} vs. ${trend.priorCount} Einheiten)`;
+    return `<div class="day-row">
+      <div class="dd">${cfg.label}</div>
+      <div class="ds">${detail}</div>
+      <div>${TREND_DIRECTION_BADGE[dir.tone]}</div>
+    </div>`;
+  };
+
+  return `<section class="panel">
+    <div class="panel-head">
+      <div class="panel-title">Trend-Forecast</div>
+      <div class="panel-note">automatisch berechnet, keine Ferndiagnose</div>
+    </div>
+    <div class="grid charts">
+      ${zoneCard("FatMax-Schätzung", series.fatMax, "km/h")}
+      ${zoneCard("VT1-Schätzung", series.vt1, "km/h")}
+      ${zoneCard("VT2-Schätzung", series.vt2, "km/h")}
+    </div>
+    <div style="margin-top:18px">
+      <div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:8px">Aktueller Trend je Session-Kategorie</div>
+      ${Object.keys(EFFICIENCY_CATEGORIES).map(categoryRow).join("")}
+    </div>
+  </section>`;
+}
+
 function renderPaceGapGauge(activities, plan, todayStr) {
   // From CPET (Longevity Center Nürnberg, 10.08.2026): FatMax/VT1/VT2 all
   // started at fixed measurements, but each is now a live estimate that
@@ -1501,6 +1598,7 @@ async function main() {
     renderCoachTip(coachTip) +
     renderWeekStats(weeklyStats, currentWeekLabel) +
     renderInsights(insights) +
+    renderTrendForecast(activities, plan, todayStr) +
     renderWeeklyVolumeChart(weeklyStats) +
     (plan ? renderTrainingPlanFull(plan, activities, todayStr, adjustments) : "") +
     renderRecoveryCharts(rhrPoints, readinessPoints, stressPoints, batteryPoints, stepsPoints) +
