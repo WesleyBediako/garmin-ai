@@ -690710,7 +690710,7 @@
         "avgOvernightHrv": 56.0,
         "hrvStatus": "BALANCED",
         "bodyBatteryChange": 59,
-        "restingHeartRate": 46
+        "restingHeartRate": 42
       },
       "hrv": {
         "userProfilePk": 104409518,
@@ -691153,7 +691153,7 @@
           "metricsMap": {
             "WELLNESS_RESTING_HEART_RATE": [
               {
-                "value": 46.0,
+                "value": 42.0,
                 "calendarDate": "2026-09-10"
               }
             ]
@@ -691166,20 +691166,20 @@
         "charged": 59,
         "drained": 52,
         "startTimestampGMT": "2026-09-09T22:00:00.0",
-        "endTimestampGMT": "2026-09-10T20:03:00.0",
+        "endTimestampGMT": "2026-09-10T20:16:00.0",
         "startTimestampLocal": "2026-09-10T00:00:00.0",
-        "endTimestampLocal": "2026-09-10T22:03:00.0",
+        "endTimestampLocal": "2026-09-10T22:16:00.0",
         "bodyBatteryValuesArray": [
           [
             1788991200000,
             26
           ],
           [
-            1789017300000,
-            84
+            1789017840000,
+            85
           ],
           [
-            1789017840000,
+            1789018020000,
             85
           ],
           [
@@ -691187,7 +691187,7 @@
             64
           ],
           [
-            1789044120000,
+            1789044840000,
             64
           ],
           [
@@ -691206,7 +691206,7 @@
           }
         ],
         "bodyBatteryDynamicFeedbackEvent": {
-          "eventTimestampGmt": "2026-09-10T19:10:11.0",
+          "eventTimestampGmt": "2026-09-10T20:03:43.0",
           "bodyBatteryLevel": "HIGH",
           "feedbackShortType": "SLEEP_PREPARATION_RECOVERING_AND_INTENSIVE_EXERCISE",
           "feedbackLongType": "SLEEP_PREPARATION_RECOVERING_AND_INTENSIVE_EXERCISE"
@@ -691254,9 +691254,9 @@
         "userProfilePK": 104409518,
         "calendarDate": "2026-09-10",
         "startTimestampGMT": "2026-09-09T22:00:00.0",
-        "endTimestampGMT": "2026-09-10T20:03:00.0",
+        "endTimestampGMT": "2026-09-10T20:16:00.0",
         "startTimestampLocal": "2026-09-10T00:00:00.0",
-        "endTimestampLocal": "2026-09-10T22:03:00.0",
+        "endTimestampLocal": "2026-09-10T22:16:00.0",
         "maxStressLevel": 92,
         "avgStressLevel": 19,
         "stressChartValueOffset": 1,
@@ -693034,6 +693034,26 @@
           ],
           [
             1789070400000,
+            -2
+          ],
+          [
+            1789070580000,
+            -2
+          ],
+          [
+            1789070760000,
+            -2
+          ],
+          [
+            1789070940000,
+            -2
+          ],
+          [
+            1789071120000,
+            -2
+          ],
+          [
+            1789071300000,
             -2
           ]
         ],
@@ -695701,6 +695721,36 @@
             null,
             null,
             3.0
+          ],
+          [
+            1789070580000,
+            null,
+            null,
+            3.0
+          ],
+          [
+            1789070760000,
+            null,
+            null,
+            3.0
+          ],
+          [
+            1789070940000,
+            null,
+            null,
+            3.0
+          ],
+          [
+            1789071120000,
+            null,
+            null,
+            3.0
+          ],
+          [
+            1789071300000,
+            null,
+            null,
+            3.0
           ]
         ]
       },
@@ -696416,6 +696466,14 @@
           "pushes": 0,
           "primaryActivityLevel": "sedentary",
           "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-10T20:15:00.0",
+          "endGMT": "2026-09-10T20:30:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": false
         }
       ],
       "training_readiness": [
@@ -713875,8 +713933,8 @@
       "qualifyingDive": false,
       "activityUUID": "57d9be5d-9056-491a-896d-2e743912dd90",
       "favorite": false,
-      "purposeful": false,
       "pr": false,
+      "purposeful": false,
       "parent": false,
       "decoDive": false,
       "manualActivity": false,
