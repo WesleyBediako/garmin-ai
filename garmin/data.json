@@ -697041,11 +697041,11 @@
       "body_battery": {
         "date": "2026-09-11",
         "charged": 6,
-        "drained": 23,
+        "drained": 25,
         "startTimestampGMT": "2026-09-10T22:00:00.0",
-        "endTimestampGMT": "2026-09-11T12:07:00.0",
+        "endTimestampGMT": "2026-09-11T12:32:00.0",
         "startTimestampLocal": "2026-09-11T00:00:00.0",
-        "endTimestampLocal": "2026-09-11T14:07:00.0",
+        "endTimestampLocal": "2026-09-11T14:32:00.0",
         "bodyBatteryValuesArray": [
           [
             1789078140000,
@@ -697064,12 +697064,12 @@
             77
           ],
           [
-            1789111800000,
+            1789112520000,
             79
           ],
           [
-            1789128180000,
-            67
+            1789129800000,
+            65
           ]
         ],
         "bodyBatteryValueDescriptorDTOList": [
@@ -697113,11 +697113,11 @@
         "userProfilePK": 104409518,
         "calendarDate": "2026-09-11",
         "startTimestampGMT": "2026-09-10T22:00:00.0",
-        "endTimestampGMT": "2026-09-11T12:07:00.0",
+        "endTimestampGMT": "2026-09-11T12:32:00.0",
         "startTimestampLocal": "2026-09-11T00:00:00.0",
-        "endTimestampLocal": "2026-09-11T14:07:00.0",
+        "endTimestampLocal": "2026-09-11T14:32:00.0",
         "maxStressLevel": 90,
-        "avgStressLevel": 19,
+        "avgStressLevel": 20,
         "stressChartValueOffset": 1,
         "stressChartYAxisOrigin": -1,
         "stressValueDescriptorsDTOList": [
@@ -698262,6 +698262,38 @@
           [
             1789128360000,
             -2
+          ],
+          [
+            1789128540000,
+            80
+          ],
+          [
+            1789128720000,
+            19
+          ],
+          [
+            1789128900000,
+            10
+          ],
+          [
+            1789129080000,
+            -2
+          ],
+          [
+            1789129260000,
+            -1
+          ],
+          [
+            1789129440000,
+            21
+          ],
+          [
+            1789129620000,
+            22
+          ],
+          [
+            1789129800000,
+            -1
           ]
         ],
         "bodyBatteryValueDescriptorsDTOList": [
@@ -699080,6 +699112,54 @@
             "MEASURED",
             67,
             3.0
+          ],
+          [
+            1789128540000,
+            "MEASURED",
+            67,
+            3.0
+          ],
+          [
+            1789128720000,
+            "MEASURED",
+            67,
+            3.0
+          ],
+          [
+            1789128900000,
+            "MEASURED",
+            67,
+            3.0
+          ],
+          [
+            1789129080000,
+            "MEASURED",
+            66,
+            3.0
+          ],
+          [
+            1789129260000,
+            "MEASURED",
+            66,
+            3.0
+          ],
+          [
+            1789129440000,
+            "MEASURED",
+            66,
+            3.0
+          ],
+          [
+            1789129620000,
+            "MEASURED",
+            66,
+            3.0
+          ],
+          [
+            1789129800000,
+            "MEASURED",
+            65,
+            3.0
           ]
         ]
       },
@@ -699535,13 +699615,60 @@
         {
           "startGMT": "2026-09-11T12:00:00.0",
           "endGMT": "2026-09-11T12:15:00.0",
-          "steps": 641,
+          "steps": 823,
+          "pushes": 0,
+          "primaryActivityLevel": "active",
+          "activityLevelConstant": false
+        },
+        {
+          "startGMT": "2026-09-11T12:15:00.0",
+          "endGMT": "2026-09-11T12:30:00.0",
+          "steps": 404,
+          "pushes": 0,
+          "primaryActivityLevel": "active",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-11T12:30:00.0",
+          "endGMT": "2026-09-11T12:45:00.0",
+          "steps": 2,
           "pushes": 0,
           "primaryActivityLevel": "active",
           "activityLevelConstant": true
         }
       ],
       "training_readiness": [
+        {
+          "userProfilePK": 104409518,
+          "calendarDate": "2026-09-11",
+          "timestamp": "2026-09-11T12:23:16.0",
+          "timestampLocal": "2026-09-11T14:23:16.0",
+          "deviceId": 3471323853,
+          "level": "HIGH",
+          "feedbackLong": "HIGH_RT_AVAILABLE_SS_UNKNOWN",
+          "feedbackShort": "WELL_RECOVERED",
+          "score": 75,
+          "sleepScore": null,
+          "sleepScoreFactorPercent": 0,
+          "sleepScoreFactorFeedback": "NONE",
+          "recoveryTime": 718,
+          "recoveryTimeFactorPercent": 81,
+          "recoveryTimeFactorFeedback": "GOOD",
+          "acwrFactorPercent": 100,
+          "acwrFactorFeedback": "VERY_GOOD",
+          "acuteLoad": 664,
+          "stressHistoryFactorPercent": 100,
+          "stressHistoryFactorFeedback": "GOOD",
+          "hrvFactorPercent": 100,
+          "hrvFactorFeedback": "VERY_GOOD",
+          "hrvWeeklyAverage": 62,
+          "sleepHistoryFactorPercent": 68,
+          "sleepHistoryFactorFeedback": "MODERATE",
+          "validSleep": false,
+          "inputContext": "UPDATE_REALTIME_VARIABLES",
+          "primaryActivityTracker": true,
+          "recoveryTimeChangePhrase": null
+        },
         {
           "userProfilePK": 104409518,
           "calendarDate": "2026-09-11",
@@ -716966,15 +717093,15 @@
       "endTimeGMT": "2026-09-10 19:09:55",
       "qualifyingDive": false,
       "activityUUID": "57d9be5d-9056-491a-896d-2e743912dd90",
+      "favorite": false,
+      "pr": false,
+      "purposeful": false,
       "parent": false,
       "decoDive": false,
-      "favorite": false,
-      "purposeful": false,
-      "pr": false,
       "manualActivity": false,
+      "autoCalcCalories": false,
       "elevationCorrected": false,
-      "atpActivity": false,
-      "autoCalcCalories": false
+      "atpActivity": false
     }
   }
 }
