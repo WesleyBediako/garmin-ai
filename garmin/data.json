@@ -708528,7 +708528,7 @@
           "metricsMap": {
             "WELLNESS_RESTING_HEART_RATE": [
               {
-                "value": 48.0,
+                "value": 47.0,
                 "calendarDate": "2026-09-14"
               }
             ]
@@ -708538,12 +708538,12 @@
       },
       "body_battery": {
         "date": "2026-09-14",
-        "charged": 16,
-        "drained": 19,
+        "charged": 19,
+        "drained": 21,
         "startTimestampGMT": "2026-09-13T22:00:00.0",
-        "endTimestampGMT": "2026-09-14T20:34:00.0",
+        "endTimestampGMT": "2026-09-14T21:34:00.0",
         "startTimestampLocal": "2026-09-14T00:00:00.0",
-        "endTimestampLocal": "2026-09-14T22:34:00.0",
+        "endTimestampLocal": "2026-09-14T23:34:00.0",
         "bodyBatteryValuesArray": [
           [
             1789336800000,
@@ -708562,12 +708562,12 @@
             66
           ],
           [
-            1789391160000,
+            1789401420000,
             66
           ],
           [
-            1789414740000,
-            53
+            1789418880000,
+            51
           ]
         ],
         "bodyBatteryValueDescriptorDTOList": [
@@ -708581,7 +708581,7 @@
           }
         ],
         "bodyBatteryDynamicFeedbackEvent": {
-          "eventTimestampGmt": "2026-09-14T20:02:15.0",
+          "eventTimestampGmt": "2026-09-14T20:35:07.0",
           "bodyBatteryLevel": "HIGH",
           "feedbackShortType": "SLEEP_PREPARATION_RECOVERING_AND_INACTIVE",
           "feedbackLongType": "SLEEP_PREPARATION_RECOVERING_AND_INACTIVE"
@@ -708614,17 +708614,23 @@
             "feedbackType": "RECOVERY_LONG_BODY_BATTERY_INCREASE",
             "shortFeedback": "LONG_RESTFUL_PERIOD"
           }
-        ]
+        ],
+        "endOfDayBodyBatteryDynamicFeedbackEvent": {
+          "eventTimestampGmt": "2026-09-14T21:00:26.0",
+          "bodyBatteryLevel": "HIGH",
+          "feedbackShortType": "SLEEP_TIME_PASSED_RECOVERING_AND_INACTIVE",
+          "feedbackLongType": "SLEEP_TIME_PASSED_RECOVERING_AND_INACTIVE"
+        }
       },
       "stress": {
         "userProfilePK": 104409518,
         "calendarDate": "2026-09-14",
         "startTimestampGMT": "2026-09-13T22:00:00.0",
-        "endTimestampGMT": "2026-09-14T20:34:00.0",
+        "endTimestampGMT": "2026-09-14T21:34:00.0",
         "startTimestampLocal": "2026-09-14T00:00:00.0",
-        "endTimestampLocal": "2026-09-14T22:34:00.0",
+        "endTimestampLocal": "2026-09-14T23:34:00.0",
         "maxStressLevel": 87,
-        "avgStressLevel": 14,
+        "avgStressLevel": 13,
         "stressChartValueOffset": 1,
         "stressChartYAxisOrigin": -1,
         "stressValueDescriptorsDTOList": [
@@ -710441,6 +710447,90 @@
           [
             1789417800000,
             -2
+          ],
+          [
+            1789417980000,
+            -2
+          ],
+          [
+            1789418160000,
+            -1
+          ],
+          [
+            1789418340000,
+            -1
+          ],
+          [
+            1789418520000,
+            -2
+          ],
+          [
+            1789418700000,
+            -1
+          ],
+          [
+            1789418880000,
+            3
+          ],
+          [
+            1789419060000,
+            2
+          ],
+          [
+            1789419240000,
+            12
+          ],
+          [
+            1789419420000,
+            5
+          ],
+          [
+            1789419600000,
+            3
+          ],
+          [
+            1789419780000,
+            4
+          ],
+          [
+            1789419960000,
+            2
+          ],
+          [
+            1789420140000,
+            3
+          ],
+          [
+            1789420320000,
+            2
+          ],
+          [
+            1789420500000,
+            4
+          ],
+          [
+            1789420680000,
+            3
+          ],
+          [
+            1789420860000,
+            5
+          ],
+          [
+            1789421040000,
+            11
+          ],
+          [
+            1789421220000,
+            8
+          ],
+          [
+            1789421400000,
+            8
+          ],
+          [
+            1789421580000,
+            22
           ]
         ],
         "bodyBatteryValueDescriptorsDTOList": [
@@ -711751,6 +711841,132 @@
             "MEASURED",
             53,
             3.0
+          ],
+          [
+            1789417980000,
+            "MEASURED",
+            53,
+            3.0
+          ],
+          [
+            1789418160000,
+            "MEASURED",
+            52,
+            3.0
+          ],
+          [
+            1789418340000,
+            "MEASURED",
+            52,
+            3.0
+          ],
+          [
+            1789418520000,
+            "MEASURED",
+            52,
+            3.0
+          ],
+          [
+            1789418700000,
+            "MEASURED",
+            52,
+            3.0
+          ],
+          [
+            1789418880000,
+            "MEASURED",
+            51,
+            3.0
+          ],
+          [
+            1789419060000,
+            "MEASURED",
+            51,
+            3.0
+          ],
+          [
+            1789419240000,
+            "MEASURED",
+            51,
+            3.0
+          ],
+          [
+            1789419420000,
+            "MEASURED",
+            51,
+            3.0
+          ],
+          [
+            1789419600000,
+            "MEASURED",
+            51,
+            3.0
+          ],
+          [
+            1789419780000,
+            "MEASURED",
+            51,
+            3.0
+          ],
+          [
+            1789419960000,
+            "MEASURED",
+            51,
+            3.0
+          ],
+          [
+            1789420140000,
+            "MEASURED",
+            53,
+            3.0
+          ],
+          [
+            1789420320000,
+            "MEASURED",
+            53,
+            3.0
+          ],
+          [
+            1789420500000,
+            "MEASURED",
+            54,
+            3.0
+          ],
+          [
+            1789420680000,
+            "MEASURED",
+            54,
+            3.0
+          ],
+          [
+            1789420860000,
+            "MEASURED",
+            54,
+            3.0
+          ],
+          [
+            1789421040000,
+            "MEASURED",
+            54,
+            3.0
+          ],
+          [
+            1789421220000,
+            "MEASURED",
+            54,
+            3.0
+          ],
+          [
+            1789421400000,
+            "MEASURED",
+            54,
+            3.0
+          ],
+          [
+            1789421580000,
+            "MEASURED",
+            54,
+            3.0
           ]
         ]
       },
@@ -712478,7 +712694,39 @@
         {
           "startGMT": "2026-09-14T20:30:00.0",
           "endGMT": "2026-09-14T20:45:00.0",
-          "steps": 31,
+          "steps": 189,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": false
+        },
+        {
+          "startGMT": "2026-09-14T20:45:00.0",
+          "endGMT": "2026-09-14T21:00:00.0",
+          "steps": 78,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-14T21:00:00.0",
+          "endGMT": "2026-09-14T21:15:00.0",
+          "steps": 14,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-14T21:15:00.0",
+          "endGMT": "2026-09-14T21:30:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-14T21:30:00.0",
+          "endGMT": "2026-09-14T21:45:00.0",
+          "steps": 0,
           "pushes": 0,
           "primaryActivityLevel": "sedentary",
           "activityLevelConstant": true
