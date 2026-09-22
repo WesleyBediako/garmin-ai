@@ -1126,9 +1126,9 @@ function renderDisclaimer() {
 
 function renderCalibrationCheckpoints(plan, todayStr) {
   const checkpoints = [
-    { date: "2026-09-20", label: "Kopenhagen Halbmarathon", desc: "Wichtigster Reality-Check vor Valencia. Faustregel: Current Marathon Effort ≈ Kopenhagen-HM-Pace + 25–35 s/km. Die Effort-Paces ab W13 sind vorläufige Schätzungen — nach dem Rennen mit echtem Ergebnis, Perceived Effort und Long-Run-Durability abgleichen, nicht blind der Vorgabe folgen." },
-    { date: "2026-09-13", label: "Erste marathonspezifische Einheit", desc: "Long Run mit ersten 8 km @Current Marathon Effort — erste Standortbestimmung vor Kopenhagen." },
-    { date: "2026-10-25", label: "Peak-Marathon-Simulation", desc: "36 km mit 4×4km @Current Marathon Effort + 4km @Target Pace-Finish, Fueling-Strategie live getestet (75–90 g KH/h). Vorgezogen von W17 wegen Australien-Hinflug (29.10.–1.11.)." },
+    { date: "2026-09-20", label: "Kopenhagen Halbmarathon — AUSGEFALLEN", desc: "Nicht gelaufen (Trainingspause 11.–21.09., Stress/Arbeit). Damit fehlt der geplante Renn-Datenpunkt für die Formel „Current Marathon Effort ≈ HM-Pace + 25–35 s/km“. Ersatz: der kontrollierte Effort-Long-Run am 11.10." },
+    { date: "2026-10-11", label: "Ersatz-Kalibrierung (statt Kopenhagen)", desc: "Long Run 26 km, letzte 6 km @kontrolliertem Marathon-Effort — nach Gefühl, nicht nach Vorgabe: „komfortabel hart, könnte noch 10 km so weiterlaufen“. Die dabei gelaufene Pace + HF definieren danach den Current Marathon Effort. Weniger belastbar als ein echtes Rennen, deshalb konservativ interpretieren." },
+    { date: "2026-10-25", label: "Peak-Marathon-Simulation", desc: "32 km mit 3×5km @Current Marathon Effort + 3km @Zielpace-Finish, Fueling live getestet (75–90 g KH/h). Von 36 auf 32 km gekürzt wegen der Pause. Vorgezogen von W17 wegen Australien-Hinflug (29.10.–1.11.). Zweiter und letzter echter Formcheck vor Valencia." },
   ];
   const rows = checkpoints
     .map((c) => {
@@ -1211,16 +1211,16 @@ function renderFueling() {
 const PHASE_TITLES = {
   p0: "Vorbereitung — Berlin 10K",
   p1: "Phase 1 — Schwellenaufbau",
-  p2: "Kopenhagen & Reload",
-  p3: "Phase 2 — Marathonspezifisch",
+  p2: "Kopenhagen (ausgefallen)",
+  p3: "Phase 2 — Wiedereinstieg & Marathonspezifisch",
   p4: "Phase 3 — Taper & Rennen",
 };
 
 const PHASE_INTROS = {
   p0: "Ursprünglicher Aufbau vor der Leistungsdiagnostik — Berlin City Night 10K als erster Formcheck.",
   p1: "Kontrollierte Schwellenarbeit nach Norwegian-Prinzipien, Volumen von 85 auf 107 km aufgebaut — Grundlage vor Spezifität.",
-  p2: "Kopenhagen Halbmarathon als wichtigster Reality-Check vor Valencia, danach eine bewusste Reload-Woche vor dem marathonspezifischen Block.",
-  p3: "Marathonspezifischer Aufbau von 85 auf 140 km Peak — Schwelle, Marathon-Effort-Blöcke und Long Runs abwechselnd dosiert, damit keine Woche drei maximale Reize stapelt.",
+  p2: "Kopenhagen war als wichtigster Reality-Check geplant, ist aber wegen der Trainingspause (11.–21.09., Stress/Arbeit) ausgefallen. Die Kalibrierung der Marathon-Pace wurde auf den Long Run am 11.10. verlegt.",
+  p3: "Nach 10 Tagen Pause zuerst drei Wochen Wiedereinstieg (50 → 72 → 92 km), danach marathonspezifisch bis ~112 km Peak statt der ursprünglich geplanten 133 km. Intensität kommt bewusst langsamer zurück als Umfang — dort sitzt das Verletzungsrisiko.",
   p4: "Progressiver Taper: Umfang runter, Schärfe halten — bis zum Valencia Marathon am 6. Dezember.",
 };
 
