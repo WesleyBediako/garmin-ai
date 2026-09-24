@@ -803823,61 +803823,426 @@
         "statisticsStartDate": "2026-09-25",
         "statisticsEndDate": "2026-09-25",
         "allMetrics": {
-          "metricsMap": {}
+          "metricsMap": {
+            "WELLNESS_RESTING_HEART_RATE": [
+              {
+                "value": 53.0,
+                "calendarDate": "2026-09-25"
+              }
+            ]
+          }
         },
         "groupedMetrics": null
       },
       "body_battery": {
         "date": "2026-09-25",
-        "charged": null,
-        "drained": null,
-        "startTimestampGMT": null,
-        "endTimestampGMT": null,
-        "startTimestampLocal": null,
-        "endTimestampLocal": null,
+        "charged": 1,
+        "drained": 0,
+        "startTimestampGMT": "2026-09-24T22:00:00.0",
+        "endTimestampGMT": "2026-09-24T23:19:00.0",
+        "startTimestampLocal": "2026-09-25T00:00:00.0",
+        "endTimestampLocal": "2026-09-25T01:19:00.0",
         "bodyBatteryValuesArray": [
           [
-            1790294400001,
-            null
+            1790287200000,
+            12
           ],
           [
-            1790294400002,
-            null
+            1790287200000,
+            12
           ],
           [
-            1790294400003,
-            null
+            1790288820000,
+            12
           ],
           [
-            1790294400004,
-            null
+            1790288820000,
+            12
           ],
           [
-            1790294400005,
-            null
+            1790290440000,
+            12
           ],
           [
-            1790294400006,
-            null
+            1790290980000,
+            13
           ]
         ],
-        "bodyBatteryValueDescriptorDTOList": null
+        "bodyBatteryValueDescriptorDTOList": [
+          {
+            "bodyBatteryValueDescriptorIndex": 0,
+            "bodyBatteryValueDescriptorKey": "timestamp"
+          },
+          {
+            "bodyBatteryValueDescriptorIndex": 1,
+            "bodyBatteryValueDescriptorKey": "bodyBatteryLevel"
+          }
+        ]
       },
       "stress": {
         "userProfilePK": 104409518,
         "calendarDate": "2026-09-25",
-        "startTimestampGMT": null,
-        "endTimestampGMT": null,
-        "startTimestampLocal": null,
-        "endTimestampLocal": null,
-        "maxStressLevel": null,
-        "avgStressLevel": null,
-        "stressChartValueOffset": null,
-        "stressChartYAxisOrigin": null,
-        "stressValueDescriptorsDTOList": [],
-        "stressValuesArray": []
+        "startTimestampGMT": "2026-09-24T22:00:00.0",
+        "endTimestampGMT": "2026-09-24T23:19:00.0",
+        "startTimestampLocal": "2026-09-25T00:00:00.0",
+        "endTimestampLocal": "2026-09-25T01:19:00.0",
+        "maxStressLevel": 70,
+        "avgStressLevel": 23,
+        "stressChartValueOffset": 1,
+        "stressChartYAxisOrigin": -1,
+        "stressValueDescriptorsDTOList": [
+          {
+            "index": 0,
+            "key": "timestamp"
+          },
+          {
+            "index": 1,
+            "key": "stressLevel"
+          }
+        ],
+        "stressValuesArray": [
+          [
+            1790287200000,
+            19
+          ],
+          [
+            1790287380000,
+            20
+          ],
+          [
+            1790287560000,
+            21
+          ],
+          [
+            1790287740000,
+            48
+          ],
+          [
+            1790287920000,
+            33
+          ],
+          [
+            1790288100000,
+            62
+          ],
+          [
+            1790288280000,
+            -1
+          ],
+          [
+            1790288460000,
+            41
+          ],
+          [
+            1790288640000,
+            15
+          ],
+          [
+            1790288820000,
+            21
+          ],
+          [
+            1790289000000,
+            19
+          ],
+          [
+            1790289180000,
+            17
+          ],
+          [
+            1790289360000,
+            18
+          ],
+          [
+            1790289540000,
+            18
+          ],
+          [
+            1790289720000,
+            19
+          ],
+          [
+            1790289900000,
+            21
+          ],
+          [
+            1790290080000,
+            24
+          ],
+          [
+            1790290260000,
+            22
+          ],
+          [
+            1790290440000,
+            20
+          ],
+          [
+            1790290620000,
+            20
+          ],
+          [
+            1790290800000,
+            21
+          ],
+          [
+            1790290980000,
+            23
+          ],
+          [
+            1790291160000,
+            24
+          ],
+          [
+            1790291340000,
+            23
+          ],
+          [
+            1790291520000,
+            21
+          ],
+          [
+            1790291700000,
+            27
+          ],
+          [
+            1790291880000,
+            27
+          ]
+        ],
+        "bodyBatteryValueDescriptorsDTOList": [
+          {
+            "bodyBatteryValueDescriptorIndex": 0,
+            "bodyBatteryValueDescriptorKey": "timestamp"
+          },
+          {
+            "bodyBatteryValueDescriptorIndex": 1,
+            "bodyBatteryValueDescriptorKey": "bodyBatteryStatus"
+          },
+          {
+            "bodyBatteryValueDescriptorIndex": 2,
+            "bodyBatteryValueDescriptorKey": "bodyBatteryLevel"
+          },
+          {
+            "bodyBatteryValueDescriptorIndex": 3,
+            "bodyBatteryValueDescriptorKey": "bodyBatteryVersion"
+          }
+        ],
+        "bodyBatteryValuesArray": [
+          [
+            1790287200000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790287380000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790287560000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790287740000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790287920000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790288100000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790288280000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790288460000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790288640000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790288820000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790289000000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790289180000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790289360000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790289540000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790289720000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790289900000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790290080000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790290260000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790290440000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790290620000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790290800000,
+            "ADJUSTED",
+            12,
+            3.0
+          ],
+          [
+            1790290980000,
+            "ADJUSTED",
+            13,
+            3.0
+          ],
+          [
+            1790291160000,
+            "ADJUSTED",
+            13,
+            3.0
+          ],
+          [
+            1790291340000,
+            "ADJUSTED",
+            13,
+            3.0
+          ],
+          [
+            1790291520000,
+            "ADJUSTED",
+            13,
+            3.0
+          ],
+          [
+            1790291700000,
+            "ADJUSTED",
+            13,
+            3.0
+          ],
+          [
+            1790291880000,
+            "ADJUSTED",
+            13,
+            3.0
+          ]
+        ]
       },
-      "steps": [],
+      "steps": [
+        {
+          "startGMT": "2026-09-24T22:00:00.0",
+          "endGMT": "2026-09-24T22:15:00.0",
+          "steps": 27,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-24T22:15:00.0",
+          "endGMT": "2026-09-24T22:30:00.0",
+          "steps": 121,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": false
+        },
+        {
+          "startGMT": "2026-09-24T22:30:00.0",
+          "endGMT": "2026-09-24T22:45:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-24T22:45:00.0",
+          "endGMT": "2026-09-24T23:00:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-24T23:00:00.0",
+          "endGMT": "2026-09-24T23:15:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-24T23:15:00.0",
+          "endGMT": "2026-09-24T23:30:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        }
+      ],
       "training_readiness": [
         {
           "userProfilePK": 104409518,
@@ -822216,15 +822581,15 @@
       "endTimeGMT": "2026-09-24 05:57:31",
       "qualifyingDive": false,
       "activityUUID": "f4318b4f-693e-4dd6-aabb-e8191f089077",
-      "pr": false,
       "favorite": false,
       "purposeful": false,
-      "parent": false,
-      "decoDive": false,
-      "manualActivity": false,
       "autoCalcCalories": false,
       "elevationCorrected": false,
-      "atpActivity": false
+      "atpActivity": false,
+      "pr": false,
+      "manualActivity": false,
+      "decoDive": false,
+      "parent": false
     }
   }
 }
