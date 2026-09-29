@@ -831653,7 +831653,7 @@
           "metricsMap": {
             "WELLNESS_RESTING_HEART_RATE": [
               {
-                "value": null,
+                "value": 84.0,
                 "calendarDate": "2026-09-29"
               }
             ]
@@ -831663,12 +831663,12 @@
       },
       "body_battery": {
         "date": "2026-09-29",
-        "charged": null,
-        "drained": null,
+        "charged": 0,
+        "drained": 0,
         "startTimestampGMT": "2026-09-28T22:00:00.0",
-        "endTimestampGMT": "2026-09-29T05:59:00.0",
+        "endTimestampGMT": "2026-09-29T06:25:00.0",
         "startTimestampLocal": "2026-09-29T00:00:00.0",
-        "endTimestampLocal": "2026-09-29T07:59:00.0",
+        "endTimestampLocal": "2026-09-29T08:25:00.0",
         "bodyBatteryValuesArray": [
           [
             1790640000000,
@@ -831687,12 +831687,12 @@
             null
           ],
           [
-            1790640000002,
-            null
+            1790662500000,
+            69
           ],
           [
-            1790640000003,
-            null
+            1790662500000,
+            69
           ]
         ],
         "bodyBatteryValueDescriptorDTOList": [
@@ -831706,19 +831706,19 @@
           }
         ],
         "bodyBatteryDynamicFeedbackEvent": {
-          "eventTimestampGmt": "2026-09-29T02:01:17.0",
+          "eventTimestampGmt": "2026-09-29T06:01:03.0",
           "bodyBatteryLevel": "MODERATE",
-          "feedbackShortType": null,
-          "feedbackLongType": "EARLY_MORNING_NO_DATA"
+          "feedbackShortType": "NO_DATA",
+          "feedbackLongType": "NO_DATA"
         }
       },
       "stress": {
         "userProfilePK": 104409518,
         "calendarDate": "2026-09-29",
         "startTimestampGMT": "2026-09-28T22:00:00.0",
-        "endTimestampGMT": "2026-09-29T05:59:00.0",
+        "endTimestampGMT": "2026-09-29T06:25:00.0",
         "startTimestampLocal": "2026-09-29T00:00:00.0",
-        "endTimestampLocal": "2026-09-29T07:59:00.0",
+        "endTimestampLocal": "2026-09-29T08:25:00.0",
         "maxStressLevel": null,
         "avgStressLevel": -1,
         "stressChartValueOffset": 1,
@@ -832373,6 +832373,42 @@
           [
             1790661420000,
             -1
+          ],
+          [
+            1790661600000,
+            -1
+          ],
+          [
+            1790661780000,
+            -1
+          ],
+          [
+            1790661960000,
+            -1
+          ],
+          [
+            1790662140000,
+            -1
+          ],
+          [
+            1790662320000,
+            -1
+          ],
+          [
+            1790662500000,
+            -1
+          ],
+          [
+            1790662680000,
+            -2
+          ],
+          [
+            1790662860000,
+            -1
+          ],
+          [
+            1790663040000,
+            -2
           ]
         ],
         "bodyBatteryValueDescriptorsDTOList": [
@@ -832639,6 +832675,30 @@
             null,
             null,
             3.0
+          ],
+          [
+            1790662500000,
+            "RESET",
+            69,
+            3.0
+          ],
+          [
+            1790662680000,
+            "MEASURED",
+            69,
+            3.0
+          ],
+          [
+            1790662860000,
+            "MEASURED",
+            69,
+            3.0
+          ],
+          [
+            1790663040000,
+            "MEASURED",
+            69,
+            3.0
           ]
         ]
       },
@@ -832897,6 +832957,22 @@
           "steps": 0,
           "pushes": 0,
           "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-29T06:00:00.0",
+          "endGMT": "2026-09-29T06:15:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-29T06:15:00.0",
+          "endGMT": "2026-09-29T06:30:00.0",
+          "steps": 201,
+          "pushes": 0,
+          "primaryActivityLevel": "highlyActive",
           "activityLevelConstant": true
         }
       ],
