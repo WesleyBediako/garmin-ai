@@ -835841,7 +835841,14 @@
         "statisticsStartDate": "2026-09-30",
         "statisticsEndDate": "2026-09-30",
         "allMetrics": {
-          "metricsMap": {}
+          "metricsMap": {
+            "WELLNESS_RESTING_HEART_RATE": [
+              {
+                "value": null,
+                "calendarDate": "2026-09-30"
+              }
+            ]
+          }
         },
         "groupedMetrics": null
       },
@@ -835849,10 +835856,10 @@
         "date": "2026-09-30",
         "charged": null,
         "drained": null,
-        "startTimestampGMT": null,
-        "endTimestampGMT": null,
-        "startTimestampLocal": null,
-        "endTimestampLocal": null,
+        "startTimestampGMT": "2026-09-29T22:00:00.0",
+        "endTimestampGMT": "2026-09-29T23:29:00.0",
+        "startTimestampLocal": "2026-09-30T00:00:00.0",
+        "endTimestampLocal": "2026-09-30T01:29:00.0",
         "bodyBatteryValuesArray": [
           [
             1790726400001,
@@ -835879,23 +835886,211 @@
             null
           ]
         ],
-        "bodyBatteryValueDescriptorDTOList": null
+        "bodyBatteryValueDescriptorDTOList": [
+          {
+            "bodyBatteryValueDescriptorIndex": 0,
+            "bodyBatteryValueDescriptorKey": "timestamp"
+          },
+          {
+            "bodyBatteryValueDescriptorIndex": 1,
+            "bodyBatteryValueDescriptorKey": "bodyBatteryLevel"
+          }
+        ]
       },
       "stress": {
         "userProfilePK": 104409518,
         "calendarDate": "2026-09-30",
-        "startTimestampGMT": null,
-        "endTimestampGMT": null,
-        "startTimestampLocal": null,
-        "endTimestampLocal": null,
+        "startTimestampGMT": "2026-09-29T22:00:00.0",
+        "endTimestampGMT": "2026-09-29T23:29:00.0",
+        "startTimestampLocal": "2026-09-30T00:00:00.0",
+        "endTimestampLocal": "2026-09-30T01:29:00.0",
         "maxStressLevel": null,
-        "avgStressLevel": null,
-        "stressChartValueOffset": null,
-        "stressChartYAxisOrigin": null,
-        "stressValueDescriptorsDTOList": [],
-        "stressValuesArray": []
+        "avgStressLevel": -2,
+        "stressChartValueOffset": 1,
+        "stressChartYAxisOrigin": -1,
+        "stressValueDescriptorsDTOList": [
+          {
+            "index": 0,
+            "key": "timestamp"
+          },
+          {
+            "index": 1,
+            "key": "stressLevel"
+          }
+        ],
+        "stressValuesArray": [
+          [
+            1790719200000,
+            -2
+          ],
+          [
+            1790719380000,
+            -2
+          ],
+          [
+            1790719560000,
+            -2
+          ],
+          [
+            1790719740000,
+            -2
+          ],
+          [
+            1790719920000,
+            -2
+          ],
+          [
+            1790720100000,
+            -2
+          ],
+          [
+            1790720280000,
+            -2
+          ],
+          [
+            1790720460000,
+            -2
+          ],
+          [
+            1790720640000,
+            -2
+          ],
+          [
+            1790720820000,
+            -2
+          ],
+          [
+            1790721000000,
+            -2
+          ],
+          [
+            1790721180000,
+            -2
+          ],
+          [
+            1790721360000,
+            -2
+          ],
+          [
+            1790721540000,
+            -2
+          ],
+          [
+            1790721720000,
+            -2
+          ],
+          [
+            1790721900000,
+            -2
+          ],
+          [
+            1790722080000,
+            -2
+          ],
+          [
+            1790722260000,
+            -2
+          ],
+          [
+            1790722440000,
+            -2
+          ],
+          [
+            1790722620000,
+            -2
+          ],
+          [
+            1790722800000,
+            -2
+          ],
+          [
+            1790722980000,
+            -2
+          ],
+          [
+            1790723160000,
+            -2
+          ],
+          [
+            1790723340000,
+            -2
+          ],
+          [
+            1790723520000,
+            -2
+          ],
+          [
+            1790723700000,
+            -2
+          ],
+          [
+            1790723880000,
+            -2
+          ],
+          [
+            1790724060000,
+            -2
+          ],
+          [
+            1790724240000,
+            -2
+          ],
+          [
+            1790724420000,
+            -2
+          ]
+        ]
       },
-      "steps": [],
+      "steps": [
+        {
+          "startGMT": "2026-09-29T22:00:00.0",
+          "endGMT": "2026-09-29T22:15:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-29T22:15:00.0",
+          "endGMT": "2026-09-29T22:30:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-29T22:30:00.0",
+          "endGMT": "2026-09-29T22:45:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-29T22:45:00.0",
+          "endGMT": "2026-09-29T23:00:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-29T23:00:00.0",
+          "endGMT": "2026-09-29T23:15:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-29T23:15:00.0",
+          "endGMT": "2026-09-29T23:30:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        }
+      ],
       "training_readiness": [
         {
           "userProfilePK": 104409518,
