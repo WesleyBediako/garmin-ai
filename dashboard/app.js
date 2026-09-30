@@ -1221,7 +1221,7 @@ const PHASE_INTROS = {
   p0: "Ursprünglicher Aufbau vor der Leistungsdiagnostik — Berlin City Night 10K als erster Formcheck.",
   p1: "Kontrollierte Schwellenarbeit nach Norwegian-Prinzipien, Volumen von 85 auf 107 km aufgebaut — Grundlage vor Spezifität.",
   p2: "Kopenhagen war als wichtigster Reality-Check geplant, ist aber wegen der Trainingspause (11.–21.09., Stress/Arbeit) ausgefallen. Die Kalibrierung der Marathon-Pace wurde auf den Long Run am 11.10. verlegt.",
-  p3: "Neustart am 30.09. nach zwei unterbrochenen Wochen. Ramp 60 → 85 → 105 → 120 km, Peak ~130 km in W19 (09.–15.11.) — bewusst nicht direkt nach dem Australien-Flug, sondern wenn der Schlafrhythmus wieder steht. Marathon-Effort-Arbeit läuft schrittweise auf die Zielpace 3:36/km zu; die Simulation am 25.10. ist der Punkt, an dem sich entscheidet, ob 3:36 trägt.",
+  p3: "Neustart am 01.10. nach zwei unterbrochenen Wochen. Ramp 50 → 85 → 105 → 120 km, Peak ~130 km in W19 (09.–15.11.) — bewusst nicht direkt nach dem Australien-Flug, sondern wenn der Schlafrhythmus wieder steht. Marathon-Effort-Arbeit läuft schrittweise auf die Zielpace 3:36/km zu; die Simulation am 25.10. ist der Punkt, an dem sich entscheidet, ob 3:36 trägt.",
   p4: "Progressiver Taper: Umfang runter, Schärfe halten — bis zum Valencia Marathon am 6. Dezember.",
 };
 
