@@ -835859,7 +835859,7 @@
           "metricsMap": {
             "WELLNESS_RESTING_HEART_RATE": [
               {
-                "value": null,
+                "value": 87.0,
                 "calendarDate": "2026-09-30"
               }
             ]
@@ -835869,36 +835869,36 @@
       },
       "body_battery": {
         "date": "2026-09-30",
-        "charged": null,
-        "drained": null,
+        "charged": 0,
+        "drained": 0,
         "startTimestampGMT": "2026-09-29T22:00:00.0",
-        "endTimestampGMT": "2026-09-29T23:29:00.0",
+        "endTimestampGMT": "2026-09-30T05:39:00.0",
         "startTimestampLocal": "2026-09-30T00:00:00.0",
-        "endTimestampLocal": "2026-09-30T01:29:00.0",
+        "endTimestampLocal": "2026-09-30T07:39:00.0",
         "bodyBatteryValuesArray": [
           [
-            1790726400001,
+            1790719200000,
             null
           ],
           [
-            1790726400002,
+            1790719200001,
             null
           ],
           [
-            1790726400003,
+            1790719200002,
             null
           ],
           [
-            1790726400004,
+            1790719200003,
             null
           ],
           [
-            1790726400005,
-            null
+            1790746560000,
+            90
           ],
           [
-            1790726400006,
-            null
+            1790746560000,
+            90
           ]
         ],
         "bodyBatteryValueDescriptorDTOList": [
@@ -835910,15 +835910,21 @@
             "bodyBatteryValueDescriptorIndex": 1,
             "bodyBatteryValueDescriptorKey": "bodyBatteryLevel"
           }
-        ]
+        ],
+        "bodyBatteryDynamicFeedbackEvent": {
+          "eventTimestampGmt": "2026-09-30T02:01:07.0",
+          "bodyBatteryLevel": "HIGH",
+          "feedbackShortType": null,
+          "feedbackLongType": "EARLY_MORNING_NO_DATA"
+        }
       },
       "stress": {
         "userProfilePK": 104409518,
         "calendarDate": "2026-09-30",
         "startTimestampGMT": "2026-09-29T22:00:00.0",
-        "endTimestampGMT": "2026-09-29T23:29:00.0",
+        "endTimestampGMT": "2026-09-30T05:39:00.0",
         "startTimestampLocal": "2026-09-30T00:00:00.0",
-        "endTimestampLocal": "2026-09-30T01:29:00.0",
+        "endTimestampLocal": "2026-09-30T07:39:00.0",
         "maxStressLevel": null,
         "avgStressLevel": -2,
         "stressChartValueOffset": 1,
@@ -836053,6 +836059,524 @@
           [
             1790724420000,
             -2
+          ],
+          [
+            1790724600000,
+            -2
+          ],
+          [
+            1790724780000,
+            -2
+          ],
+          [
+            1790724960000,
+            -2
+          ],
+          [
+            1790725140000,
+            -2
+          ],
+          [
+            1790725320000,
+            -2
+          ],
+          [
+            1790725500000,
+            -2
+          ],
+          [
+            1790725680000,
+            -2
+          ],
+          [
+            1790725860000,
+            -2
+          ],
+          [
+            1790726040000,
+            -2
+          ],
+          [
+            1790726220000,
+            -2
+          ],
+          [
+            1790726400000,
+            -2
+          ],
+          [
+            1790726580000,
+            -2
+          ],
+          [
+            1790726760000,
+            -2
+          ],
+          [
+            1790726940000,
+            -2
+          ],
+          [
+            1790727120000,
+            -2
+          ],
+          [
+            1790727300000,
+            -2
+          ],
+          [
+            1790727480000,
+            -2
+          ],
+          [
+            1790727660000,
+            -2
+          ],
+          [
+            1790727840000,
+            -2
+          ],
+          [
+            1790728020000,
+            -2
+          ],
+          [
+            1790728200000,
+            -2
+          ],
+          [
+            1790728380000,
+            -2
+          ],
+          [
+            1790728560000,
+            -2
+          ],
+          [
+            1790728740000,
+            -2
+          ],
+          [
+            1790728920000,
+            -2
+          ],
+          [
+            1790729100000,
+            -2
+          ],
+          [
+            1790729280000,
+            -2
+          ],
+          [
+            1790729460000,
+            -2
+          ],
+          [
+            1790729640000,
+            -2
+          ],
+          [
+            1790729820000,
+            -2
+          ],
+          [
+            1790730000000,
+            -2
+          ],
+          [
+            1790730180000,
+            -2
+          ],
+          [
+            1790730360000,
+            -2
+          ],
+          [
+            1790730540000,
+            -2
+          ],
+          [
+            1790730720000,
+            -2
+          ],
+          [
+            1790730900000,
+            -2
+          ],
+          [
+            1790731080000,
+            -2
+          ],
+          [
+            1790731260000,
+            -2
+          ],
+          [
+            1790731440000,
+            -2
+          ],
+          [
+            1790731620000,
+            -2
+          ],
+          [
+            1790731800000,
+            -2
+          ],
+          [
+            1790731980000,
+            -2
+          ],
+          [
+            1790732160000,
+            -2
+          ],
+          [
+            1790732340000,
+            -2
+          ],
+          [
+            1790732520000,
+            -2
+          ],
+          [
+            1790732700000,
+            -2
+          ],
+          [
+            1790732880000,
+            -2
+          ],
+          [
+            1790733060000,
+            -2
+          ],
+          [
+            1790733240000,
+            -2
+          ],
+          [
+            1790733420000,
+            -2
+          ],
+          [
+            1790733600000,
+            -2
+          ],
+          [
+            1790733780000,
+            -2
+          ],
+          [
+            1790733960000,
+            -2
+          ],
+          [
+            1790734140000,
+            -2
+          ],
+          [
+            1790734320000,
+            -2
+          ],
+          [
+            1790734500000,
+            -2
+          ],
+          [
+            1790734680000,
+            -2
+          ],
+          [
+            1790734860000,
+            -2
+          ],
+          [
+            1790735040000,
+            -2
+          ],
+          [
+            1790735220000,
+            -2
+          ],
+          [
+            1790735400000,
+            -2
+          ],
+          [
+            1790735580000,
+            -2
+          ],
+          [
+            1790735760000,
+            -2
+          ],
+          [
+            1790735940000,
+            -2
+          ],
+          [
+            1790736120000,
+            -2
+          ],
+          [
+            1790736300000,
+            -2
+          ],
+          [
+            1790736480000,
+            -2
+          ],
+          [
+            1790736660000,
+            -2
+          ],
+          [
+            1790736840000,
+            -2
+          ],
+          [
+            1790737020000,
+            -2
+          ],
+          [
+            1790737200000,
+            -2
+          ],
+          [
+            1790737380000,
+            -2
+          ],
+          [
+            1790737560000,
+            -2
+          ],
+          [
+            1790737740000,
+            -2
+          ],
+          [
+            1790737920000,
+            -2
+          ],
+          [
+            1790738100000,
+            -2
+          ],
+          [
+            1790738280000,
+            -2
+          ],
+          [
+            1790738460000,
+            -2
+          ],
+          [
+            1790738640000,
+            -2
+          ],
+          [
+            1790738820000,
+            -2
+          ],
+          [
+            1790739000000,
+            -2
+          ],
+          [
+            1790739180000,
+            -2
+          ],
+          [
+            1790739360000,
+            -2
+          ],
+          [
+            1790739540000,
+            -2
+          ],
+          [
+            1790739720000,
+            -2
+          ],
+          [
+            1790739900000,
+            -2
+          ],
+          [
+            1790740080000,
+            -2
+          ],
+          [
+            1790740260000,
+            -2
+          ],
+          [
+            1790740440000,
+            -2
+          ],
+          [
+            1790740620000,
+            -2
+          ],
+          [
+            1790740800000,
+            -2
+          ],
+          [
+            1790740980000,
+            -2
+          ],
+          [
+            1790741160000,
+            -2
+          ],
+          [
+            1790741340000,
+            -2
+          ],
+          [
+            1790741520000,
+            -2
+          ],
+          [
+            1790741700000,
+            -2
+          ],
+          [
+            1790741880000,
+            -2
+          ],
+          [
+            1790742060000,
+            -2
+          ],
+          [
+            1790742240000,
+            -2
+          ],
+          [
+            1790742420000,
+            -2
+          ],
+          [
+            1790742600000,
+            -2
+          ],
+          [
+            1790742780000,
+            -2
+          ],
+          [
+            1790742960000,
+            -2
+          ],
+          [
+            1790743140000,
+            -2
+          ],
+          [
+            1790743320000,
+            -2
+          ],
+          [
+            1790743500000,
+            -2
+          ],
+          [
+            1790743680000,
+            -2
+          ],
+          [
+            1790743860000,
+            -2
+          ],
+          [
+            1790744040000,
+            -2
+          ],
+          [
+            1790744220000,
+            -2
+          ],
+          [
+            1790744400000,
+            -2
+          ],
+          [
+            1790744580000,
+            -2
+          ],
+          [
+            1790744760000,
+            -2
+          ],
+          [
+            1790744940000,
+            -2
+          ],
+          [
+            1790745120000,
+            -2
+          ],
+          [
+            1790745300000,
+            -2
+          ],
+          [
+            1790745480000,
+            -2
+          ],
+          [
+            1790745660000,
+            -2
+          ],
+          [
+            1790745840000,
+            -2
+          ],
+          [
+            1790746020000,
+            -2
+          ],
+          [
+            1790746200000,
+            -2
+          ],
+          [
+            1790746380000,
+            -2
+          ],
+          [
+            1790746560000,
+            -2
+          ]
+        ],
+        "bodyBatteryValueDescriptorsDTOList": [
+          {
+            "bodyBatteryValueDescriptorIndex": 0,
+            "bodyBatteryValueDescriptorKey": "timestamp"
+          },
+          {
+            "bodyBatteryValueDescriptorIndex": 1,
+            "bodyBatteryValueDescriptorKey": "bodyBatteryStatus"
+          },
+          {
+            "bodyBatteryValueDescriptorIndex": 2,
+            "bodyBatteryValueDescriptorKey": "bodyBatteryLevel"
+          },
+          {
+            "bodyBatteryValueDescriptorIndex": 3,
+            "bodyBatteryValueDescriptorKey": "bodyBatteryVersion"
+          }
+        ],
+        "bodyBatteryValuesArray": [
+          [
+            1790746560000,
+            "RESET",
+            90,
+            3.0
           ]
         ]
       },
@@ -836104,6 +836628,206 @@
           "pushes": 0,
           "primaryActivityLevel": "sedentary",
           "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-29T23:30:00.0",
+          "endGMT": "2026-09-29T23:45:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-29T23:45:00.0",
+          "endGMT": "2026-09-30T00:00:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T00:00:00.0",
+          "endGMT": "2026-09-30T00:15:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T00:15:00.0",
+          "endGMT": "2026-09-30T00:30:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T00:30:00.0",
+          "endGMT": "2026-09-30T00:45:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T00:45:00.0",
+          "endGMT": "2026-09-30T01:00:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T01:00:00.0",
+          "endGMT": "2026-09-30T01:15:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T01:15:00.0",
+          "endGMT": "2026-09-30T01:30:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T01:30:00.0",
+          "endGMT": "2026-09-30T01:45:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T01:45:00.0",
+          "endGMT": "2026-09-30T02:00:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T02:00:00.0",
+          "endGMT": "2026-09-30T02:15:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T02:15:00.0",
+          "endGMT": "2026-09-30T02:30:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T02:30:00.0",
+          "endGMT": "2026-09-30T02:45:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T02:45:00.0",
+          "endGMT": "2026-09-30T03:00:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T03:00:00.0",
+          "endGMT": "2026-09-30T03:15:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T03:15:00.0",
+          "endGMT": "2026-09-30T03:30:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T03:30:00.0",
+          "endGMT": "2026-09-30T03:45:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T03:45:00.0",
+          "endGMT": "2026-09-30T04:00:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T04:00:00.0",
+          "endGMT": "2026-09-30T04:15:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T04:15:00.0",
+          "endGMT": "2026-09-30T04:30:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T04:30:00.0",
+          "endGMT": "2026-09-30T04:45:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T04:45:00.0",
+          "endGMT": "2026-09-30T05:00:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T05:00:00.0",
+          "endGMT": "2026-09-30T05:15:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T05:15:00.0",
+          "endGMT": "2026-09-30T05:30:00.0",
+          "steps": 0,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        },
+        {
+          "startGMT": "2026-09-30T05:30:00.0",
+          "endGMT": "2026-09-30T05:45:00.0",
+          "steps": 59,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": false
         }
       ],
       "training_readiness": [
