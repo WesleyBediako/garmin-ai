@@ -846723,11 +846723,11 @@
       "body_battery": {
         "date": "2026-10-01",
         "charged": 45,
-        "drained": 62,
+        "drained": 63,
         "startTimestampGMT": "2026-09-30T22:00:00.0",
-        "endTimestampGMT": "2026-10-01T21:33:00.0",
+        "endTimestampGMT": "2026-10-01T22:00:00.0",
         "startTimestampLocal": "2026-10-01T00:00:00.0",
-        "endTimestampLocal": "2026-10-01T23:33:00.0",
+        "endTimestampLocal": "2026-10-02T00:00:00.0",
         "bodyBatteryValuesArray": [
           [
             1790807220000,
@@ -846738,20 +846738,20 @@
             86
           ],
           [
-            1790833860000,
-            81
+            1790834400000,
+            80
           ],
           [
-            1790861220000,
-            49
+            1790863020000,
+            47
           ],
           [
-            1790862120000,
-            49
+            1790863200000,
+            47
           ],
           [
-            1790888940000,
-            26
+            1790891100000,
+            25
           ]
         ],
         "bodyBatteryValueDescriptorDTOList": [
@@ -846782,7 +846782,7 @@
           }
         ],
         "endOfDayBodyBatteryDynamicFeedbackEvent": {
-          "eventTimestampGmt": "2026-10-01T21:30:10.0",
+          "eventTimestampGmt": "2026-10-01T21:38:21.0",
           "bodyBatteryLevel": "HIGH",
           "feedbackShortType": "SLEEP_TIME_PASSED_RECOVERING_AND_INACTIVE",
           "feedbackLongType": "SLEEP_TIME_PASSED_RECOVERING_AND_INACTIVE"
@@ -846792,11 +846792,11 @@
         "userProfilePK": 104409518,
         "calendarDate": "2026-10-01",
         "startTimestampGMT": "2026-09-30T22:00:00.0",
-        "endTimestampGMT": "2026-10-01T21:33:00.0",
+        "endTimestampGMT": "2026-10-01T22:00:00.0",
         "startTimestampLocal": "2026-10-01T00:00:00.0",
-        "endTimestampLocal": "2026-10-01T23:33:00.0",
+        "endTimestampLocal": "2026-10-02T00:00:00.0",
         "maxStressLevel": 94,
-        "avgStressLevel": 25,
+        "avgStressLevel": 26,
         "stressChartValueOffset": 1,
         "stressChartYAxisOrigin": -1,
         "stressValueDescriptorsDTOList": [
@@ -848693,6 +848693,42 @@
           [
             1790890200000,
             27
+          ],
+          [
+            1790890380000,
+            -1
+          ],
+          [
+            1790890560000,
+            -1
+          ],
+          [
+            1790890740000,
+            -1
+          ],
+          [
+            1790890920000,
+            43
+          ],
+          [
+            1790891100000,
+            22
+          ],
+          [
+            1790891280000,
+            38
+          ],
+          [
+            1790891460000,
+            58
+          ],
+          [
+            1790891640000,
+            -1
+          ],
+          [
+            1790891820000,
+            43
           ]
         ],
         "bodyBatteryValueDescriptorsDTOList": [
@@ -851539,6 +851575,60 @@
             "MEASURED",
             26,
             3.0
+          ],
+          [
+            1790890380000,
+            "MEASURED",
+            26,
+            3.0
+          ],
+          [
+            1790890560000,
+            "MEASURED",
+            26,
+            3.0
+          ],
+          [
+            1790890740000,
+            "MEASURED",
+            26,
+            3.0
+          ],
+          [
+            1790890920000,
+            "MEASURED",
+            26,
+            3.0
+          ],
+          [
+            1790891100000,
+            "MEASURED",
+            25,
+            3.0
+          ],
+          [
+            1790891280000,
+            "MEASURED",
+            25,
+            3.0
+          ],
+          [
+            1790891460000,
+            "MEASURED",
+            25,
+            3.0
+          ],
+          [
+            1790891640000,
+            "MEASURED",
+            25,
+            3.0
+          ],
+          [
+            1790891820000,
+            "MEASURED",
+            25,
+            3.0
           ]
         ]
       },
@@ -852298,7 +852388,15 @@
         {
           "startGMT": "2026-10-01T21:30:00.0",
           "endGMT": "2026-10-01T21:45:00.0",
-          "steps": 0,
+          "steps": 138,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": false
+        },
+        {
+          "startGMT": "2026-10-01T21:45:00.0",
+          "endGMT": "2026-10-01T22:00:00.0",
+          "steps": 120,
           "pushes": 0,
           "primaryActivityLevel": "sedentary",
           "activityLevelConstant": true
@@ -852337,6 +852435,237 @@
           "recoveryTimeChangePhrase": "NO_CHANGE_SLEEP"
         }
       ]
+    },
+    "2026-10-02": {
+      "sleep": {
+        "dailySleepDTO": {
+          "id": null,
+          "userProfilePK": 104409518,
+          "calendarDate": "2026-10-02",
+          "sleepTimeSeconds": null,
+          "napTimeSeconds": null,
+          "sleepWindowConfirmed": null,
+          "sleepWindowConfirmationType": null,
+          "sleepStartTimestampGMT": null,
+          "sleepEndTimestampGMT": null,
+          "sleepStartTimestampLocal": null,
+          "sleepEndTimestampLocal": null,
+          "autoSleepStartTimestampGMT": null,
+          "autoSleepEndTimestampGMT": null,
+          "sleepQualityTypePK": null,
+          "sleepResultTypePK": null,
+          "unmeasurableSleepSeconds": null,
+          "deepSleepSeconds": null,
+          "lightSleepSeconds": null,
+          "remSleepSeconds": null,
+          "awakeSleepSeconds": null,
+          "deviceRemCapable": false,
+          "retro": false,
+          "sleepNeed": {
+            "userProfilePk": 104409518,
+            "calendarDate": "2026-10-02",
+            "deviceId": 3471323853,
+            "timestampGmt": "2026-10-01T05:02:40",
+            "baseline": 480,
+            "actual": 480,
+            "feedback": "NO_CHANGE_NO_ADJUSTMENTS",
+            "trainingFeedback": "NO_CHANGE",
+            "sleepHistoryAdjustment": "NO_CHANGE",
+            "hrvAdjustment": "NO_DATA",
+            "napAdjustment": "NO_CHANGE",
+            "displayedForTheDay": false,
+            "preferredActivityTracker": true
+          }
+        },
+        "sleepMovement": null,
+        "remSleepData": null,
+        "sleepLevels": null
+      },
+      "hrv": null,
+      "rhr": {
+        "userProfileId": 104409518,
+        "statisticsStartDate": "2026-10-02",
+        "statisticsEndDate": "2026-10-02",
+        "allMetrics": {
+          "metricsMap": {
+            "WELLNESS_RESTING_HEART_RATE": [
+              {
+                "value": 58.0,
+                "calendarDate": "2026-10-02"
+              }
+            ]
+          }
+        },
+        "groupedMetrics": null
+      },
+      "body_battery": {
+        "date": "2026-10-02",
+        "charged": 0,
+        "drained": 0,
+        "startTimestampGMT": "2026-10-01T22:00:00.0",
+        "endTimestampGMT": "2026-10-01T22:18:00.0",
+        "startTimestampLocal": "2026-10-02T00:00:00.0",
+        "endTimestampLocal": "2026-10-02T00:18:00.0",
+        "bodyBatteryValuesArray": [
+          [
+            1790892000000,
+            25
+          ],
+          [
+            1790892000000,
+            25
+          ],
+          [
+            1790892360000,
+            25
+          ],
+          [
+            1790892360000,
+            25
+          ],
+          [
+            1790892720000,
+            25
+          ],
+          [
+            1790892720000,
+            25
+          ]
+        ],
+        "bodyBatteryValueDescriptorDTOList": [
+          {
+            "bodyBatteryValueDescriptorIndex": 0,
+            "bodyBatteryValueDescriptorKey": "timestamp"
+          },
+          {
+            "bodyBatteryValueDescriptorIndex": 1,
+            "bodyBatteryValueDescriptorKey": "bodyBatteryLevel"
+          }
+        ]
+      },
+      "stress": {
+        "userProfilePK": 104409518,
+        "calendarDate": "2026-10-02",
+        "startTimestampGMT": "2026-10-01T22:00:00.0",
+        "endTimestampGMT": "2026-10-01T22:18:00.0",
+        "startTimestampLocal": "2026-10-02T00:00:00.0",
+        "endTimestampLocal": "2026-10-02T00:18:00.0",
+        "maxStressLevel": 60,
+        "avgStressLevel": 19,
+        "stressChartValueOffset": 1,
+        "stressChartYAxisOrigin": -1,
+        "stressValueDescriptorsDTOList": [
+          {
+            "index": 0,
+            "key": "timestamp"
+          },
+          {
+            "index": 1,
+            "key": "stressLevel"
+          }
+        ],
+        "stressValuesArray": [
+          [
+            1790892000000,
+            -2
+          ],
+          [
+            1790892180000,
+            -1
+          ],
+          [
+            1790892360000,
+            43
+          ],
+          [
+            1790892540000,
+            15
+          ],
+          [
+            1790892720000,
+            12
+          ],
+          [
+            1790892900000,
+            16
+          ]
+        ],
+        "bodyBatteryValueDescriptorsDTOList": [
+          {
+            "bodyBatteryValueDescriptorIndex": 0,
+            "bodyBatteryValueDescriptorKey": "timestamp"
+          },
+          {
+            "bodyBatteryValueDescriptorIndex": 1,
+            "bodyBatteryValueDescriptorKey": "bodyBatteryStatus"
+          },
+          {
+            "bodyBatteryValueDescriptorIndex": 2,
+            "bodyBatteryValueDescriptorKey": "bodyBatteryLevel"
+          },
+          {
+            "bodyBatteryValueDescriptorIndex": 3,
+            "bodyBatteryValueDescriptorKey": "bodyBatteryVersion"
+          }
+        ],
+        "bodyBatteryValuesArray": [
+          [
+            1790892000000,
+            "MEASURED",
+            25,
+            3.0
+          ],
+          [
+            1790892180000,
+            "MEASURED",
+            25,
+            3.0
+          ],
+          [
+            1790892360000,
+            "MEASURED",
+            25,
+            3.0
+          ],
+          [
+            1790892540000,
+            "MEASURED",
+            25,
+            3.0
+          ],
+          [
+            1790892720000,
+            "MEASURED",
+            25,
+            3.0
+          ],
+          [
+            1790892900000,
+            "MEASURED",
+            25,
+            3.0
+          ]
+        ]
+      },
+      "steps": [
+        {
+          "startGMT": "2026-10-01T22:00:00.0",
+          "endGMT": "2026-10-01T22:15:00.0",
+          "steps": 180,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": false
+        },
+        {
+          "startGMT": "2026-10-01T22:15:00.0",
+          "endGMT": "2026-10-01T22:30:00.0",
+          "steps": 9,
+          "pushes": 0,
+          "primaryActivityLevel": "sedentary",
+          "activityLevelConstant": true
+        }
+      ],
+      "training_readiness": []
     }
   },
   "activities": {
