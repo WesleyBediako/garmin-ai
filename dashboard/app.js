@@ -1127,9 +1127,9 @@ function renderDisclaimer() {
 function renderCalibrationCheckpoints(plan, todayStr) {
   const checkpoints = [
     { date: "2026-09-20", label: "Kopenhagen Halbmarathon — AUSGEFALLEN", desc: "Nicht gelaufen (Trainingspause 11.–21.09., Stress/Arbeit). Damit fehlt der geplante Renn-Datenpunkt für die Formel „Current Marathon Effort ≈ HM-Pace + 25–35 s/km“. Ersatz: der kontrollierte Effort-Long-Run am 11.10." },
-    { date: "2026-10-18", label: "Erster MP-Kontakt", desc: "Long Run 28 km, letzte 8 km @3:50–3:55/km — bewusst 15 s/km langsamer als die Zielpace. Frage ist nicht „schaffe ich 3:36“, sondern ob sich MP-nahe Pace nach 20 km lockerem Laufen noch kontrolliert anfühlt." },
-    { date: "2026-10-25", label: "Marathon-Simulation 34 km — Entscheidungspunkt", desc: "3×6km @3:42–3:46/km + 3km @3:36/km Finish, Fueling live (75–90 g KH/h). Hier entscheidet sich die Zielzeit: gehen die letzten 3 km kontrolliert, bleibt 3:36 stehen. Musst du dafür reißen, setzen wir auf 3:45–3:50 um — an diesem Tag, nicht im Rennen. Vorgezogen wegen Australien-Hinflug (29.10.)." },
-    { date: "2026-11-15", label: "Letzter langer Lauf (Peak-Woche)", desc: "32 km mit den letzten 12 km @3:38–3:42/km, drei Wochen vor dem Rennen. Danach kommt keine Form mehr dazu — ab hier nur noch Frische." },
+    { date: "2026-10-18", label: "Erster MP-Kontakt", desc: "Long Run 24 km, letzte 6 km @3:50–3:55/km — bewusst 15 s/km langsamer als die Zielpace. Frage ist nicht „schaffe ich 3:36“, sondern ob sich MP-nahe Pace nach 18 km lockerem Laufen noch kontrolliert anfühlt." },
+    { date: "2026-10-25", label: "Marathon-Simulation 30 km — Entscheidungspunkt", desc: "3×5km @3:45–3:48/km + 2km @3:36/km Finish, Fueling live (75–90 g KH/h). Hier entscheidet sich die Zielzeit: gehen die letzten 2 km kontrolliert, bleibt 3:36 stehen. Musst du dafür reißen, setzen wir auf 3:45–3:50 um — an diesem Tag, nicht im Rennen. Vorgezogen wegen Australien-Hinflug (29.10.)." },
+    { date: "2026-11-15", label: "Letzter langer Lauf — Peak-Woche (140 km)", desc: "35 km mit den letzten 12 km @3:38–3:42/km, genau drei Wochen vor dem Rennen. Danach kommt keine Form mehr dazu — ab hier nur noch Frische. Fueling exakt wie im Rennen." },
   ];
   const rows = checkpoints
     .map((c) => {
@@ -1221,7 +1221,7 @@ const PHASE_INTROS = {
   p0: "Ursprünglicher Aufbau vor der Leistungsdiagnostik — Berlin City Night 10K als erster Formcheck.",
   p1: "Kontrollierte Schwellenarbeit nach Norwegian-Prinzipien, Volumen von 85 auf 107 km aufgebaut — Grundlage vor Spezifität.",
   p2: "Kopenhagen war als wichtigster Reality-Check geplant, ist aber wegen der Trainingspause (11.–21.09., Stress/Arbeit) ausgefallen. Die Kalibrierung der Marathon-Pace wurde auf den Long Run am 11.10. verlegt.",
-  p3: "Neustart am 01.10. nach zwei unterbrochenen Wochen. Ramp 50 → 85 → 105 → 120 km, Peak ~130 km in W19 (09.–15.11.) — bewusst nicht direkt nach dem Australien-Flug, sondern wenn der Schlafrhythmus wieder steht. Marathon-Effort-Arbeit läuft schrittweise auf die Zielpace 3:36/km zu; die Simulation am 25.10. ist der Punkt, an dem sich entscheidet, ob 3:36 trägt.",
+  p3: "8-Wochen-Block ab 05.10.: 60 → 80 → 98 → 105 (Reisewoche) → 125 → Peak 140 km (09.–15.11.). Der Peak liegt bewusst eine Woche nach dem Australien-Flug, nicht direkt danach. Marathon-Effort-Arbeit steigt schrittweise auf 3:36/km; die Simulation am 25.10. ist der Punkt, an dem sich entscheidet, ob die Zielpace trägt.",
   p4: "Progressiver Taper: Umfang runter, Schärfe halten — bis zum Valencia Marathon am 6. Dezember.",
 };
 
