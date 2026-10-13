@@ -976034,6 +976034,114 @@
           "recoveryTimeChangePhrase": "NO_CHANGE_SLEEP"
         }
       ]
+    },
+    "2026-10-14": {
+      "sleep": {
+        "dailySleepDTO": {
+          "id": null,
+          "userProfilePK": 104409518,
+          "calendarDate": "2026-10-14",
+          "sleepTimeSeconds": null,
+          "napTimeSeconds": null,
+          "sleepWindowConfirmed": null,
+          "sleepWindowConfirmationType": null,
+          "sleepStartTimestampGMT": null,
+          "sleepEndTimestampGMT": null,
+          "sleepStartTimestampLocal": null,
+          "sleepEndTimestampLocal": null,
+          "autoSleepStartTimestampGMT": null,
+          "autoSleepEndTimestampGMT": null,
+          "sleepQualityTypePK": null,
+          "sleepResultTypePK": null,
+          "unmeasurableSleepSeconds": null,
+          "deepSleepSeconds": null,
+          "lightSleepSeconds": null,
+          "remSleepSeconds": null,
+          "awakeSleepSeconds": null,
+          "deviceRemCapable": false,
+          "retro": false,
+          "sleepNeed": {
+            "userProfilePk": 104409518,
+            "calendarDate": "2026-10-14",
+            "deviceId": 3471323853,
+            "timestampGmt": "2026-10-13T11:23:40",
+            "baseline": 480,
+            "actual": 540,
+            "feedback": "HIGHLY_INCREASED",
+            "trainingFeedback": "HIGH_ACWR_AND_CHRONIC",
+            "sleepHistoryAdjustment": "INCREASING",
+            "hrvAdjustment": "INCREASING",
+            "napAdjustment": "NO_CHANGE",
+            "displayedForTheDay": true,
+            "preferredActivityTracker": true
+          }
+        },
+        "sleepMovement": null,
+        "remSleepData": null,
+        "sleepLevels": null
+      },
+      "hrv": null,
+      "rhr": {
+        "userProfileId": 104409518,
+        "statisticsStartDate": "2026-10-14",
+        "statisticsEndDate": "2026-10-14",
+        "allMetrics": {
+          "metricsMap": {}
+        },
+        "groupedMetrics": null
+      },
+      "body_battery": {
+        "date": "2026-10-14",
+        "charged": null,
+        "drained": null,
+        "startTimestampGMT": null,
+        "endTimestampGMT": null,
+        "startTimestampLocal": null,
+        "endTimestampLocal": null,
+        "bodyBatteryValuesArray": [
+          [
+            1791936000001,
+            null
+          ],
+          [
+            1791936000002,
+            null
+          ],
+          [
+            1791936000003,
+            null
+          ],
+          [
+            1791936000004,
+            null
+          ],
+          [
+            1791936000005,
+            null
+          ],
+          [
+            1791936000006,
+            null
+          ]
+        ],
+        "bodyBatteryValueDescriptorDTOList": null
+      },
+      "stress": {
+        "userProfilePK": 104409518,
+        "calendarDate": "2026-10-14",
+        "startTimestampGMT": null,
+        "endTimestampGMT": null,
+        "startTimestampLocal": null,
+        "endTimestampLocal": null,
+        "maxStressLevel": null,
+        "avgStressLevel": null,
+        "stressChartValueOffset": null,
+        "stressChartYAxisOrigin": null,
+        "stressValueDescriptorsDTOList": [],
+        "stressValuesArray": []
+      },
+      "steps": [],
+      "training_readiness": []
     }
   },
   "activities": {
@@ -996613,14 +996721,14 @@
       "endTimeGMT": "2026-10-13 11:23:27",
       "qualifyingDive": false,
       "activityUUID": "ab5d848f-66cb-473c-ac3d-08e213963688",
-      "manualActivity": false,
-      "autoCalcCalories": false,
-      "elevationCorrected": false,
-      "atpActivity": false,
-      "decoDive": false,
-      "purposeful": false,
       "favorite": false,
       "pr": false,
+      "elevationCorrected": false,
+      "purposeful": false,
+      "decoDive": false,
+      "autoCalcCalories": false,
+      "manualActivity": false,
+      "atpActivity": false,
       "parent": false,
       "lap_structure": [
         {
